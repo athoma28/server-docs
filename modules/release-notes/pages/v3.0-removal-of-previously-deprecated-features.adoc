@@ -1,134 +1,134 @@
-= V3.0 Removal of Previously Deprecated Features
-
-TigerGraph 2.x contained some features which were labeled as deprecated. These features are no longer necessary because they have been superseded already by improved approaches for using the TigerGraph platform. The new approaches were developed because they use more consistent grammar, are more extensible,  or offer higher performance. Therefore, TigerGraph 3.0 has streamlined the product by removing support for some of these deprecated features, listed below:
-
-[discrete]
-=== Data Types
-
-See xref:3.2@gsql-ref:querying:data-types.adoc[Data Types in GSQL Language Reference]
-
-|===
-| Deprecated Type | Alternate Approach
-
-| REAL
-| Use FLOAT or DOUBLE
-
-| INT_SET
-| Use SET<INT>
-
-| INT_LIST
-| Use LIST<INT>
-
-| STRING_SET_COMPRESS
-| Use SET<STRING COMPRESS>
-
-| STRING_LIST_CONPRESS
-| Use LIST<STRING COMPRESS>
-
-| UINT_SET
-| Use SET<INT>
-
-| UINT32_UINT32_KV_LIST
-| Use MAP<UINT, UINT>
-
-| INT32_INT32_KV_LIST
-| Use MAP<INT, INT>
-
-| UINT32_UDT_KV_LIST
-| Use MAP<UINT, UDT_type>, where UDT_type is a user-defined tuple type
-
-| INT32_UDT_KV_LIST
-| Use MAP<INT, UDT_type>, where UDT_type is a user-defined tuple type
-|===
-
-[discrete]
-=== Syntax for Control Flow Statements
-
-See xref:3.2@gsql-ref:querying:control-flow-statements.adoc[Control Flow Statements in GSQL Language Reference]
-+++<table>++++++<thead>++++++<tr>++++++<th style="text-align:left">+++Deprecated Statement+++</th>+++
-      +++<th style="text-align:left">+++Alternate Statement+++</th>++++++</tr>++++++</thead>+++
-  +++<tbody>++++++<tr>++++++<td style="text-align:left">+++FOREACH \... DO \... DONE+++</td>+++
-      +++<td style="text-align:left">+++FOREACH\... DO\... END+++</td>++++++</tr>+++
-    +++<tr>++++++<td style="text-align:left">+++FOREACH (condition) {
-        +++<br>++++++</br>+++body
-        +++<br>++++++</br>+++}+++</td>+++
-      +++<td style="text-align:left">++++++<p>+++FOREACH condition DO+++</p>+++
-        +++<p>+++body+++</p>+++
-        +++<p>+++END+++</p>++++++</td>++++++</tr>+++
-    +++<tr>++++++<td style="text-align:left">++++++<p>+++IF (condition) {+++</p>+++
-        +++<p>+++body1+++</p>+++
-        +++<p>+++} else {+++</p>+++
-        +++<p>+++body2+++</p>+++
-        +++<p>+++}+++</p>++++++</td>+++
-      +++<td style="text-align:left">++++++<p>+++IF condition THEN+++</p>+++
-        +++<p>+++body1+++</p>+++
-        +++<p>+++ELSE+++</p>+++
-        +++<p>+++body2+++</p>+++
-        +++<p>+++END+++</p>++++++</td>++++++</tr>+++
-    +++<tr>++++++<td style="text-align:left">++++++<p>+++WHILE (condition) {+++</p>+++
-        +++<p>+++body+++</p>+++
-        +++<p>+++}+++</p>++++++</td>+++
-      +++<td style="text-align:left">++++++<p>+++WHILE condition DO+++</p>+++
-        +++<p>+++body+++</p>+++
-        +++<p>+++END+++</p>++++++</td>++++++</tr>++++++</tbody>++++++</table>+++
-
-[discrete]
-=== Vertex Set Variable Declaration
-
-See xref:gsql-ref:querying:declaration-and-assignment-statements.adoc#_vertex_set_variable_declaration_and_assignment[Vertex Set Variable Declaration and Assignment]
-
-If a vertex type is specified, the vertex type must be within parentheses.
-
-|===
-| Deprecated Statement | Alternate Statement
-
-| MySet Person = ...
-| MySet (Person) = ...
-|===
-
-[discrete]
-=== Query, Job, and Token Management
-
-
-+++<table>++++++<thead>++++++<tr>++++++<th style="text-align:left">+++Deprecated Operation+++</th>+++
-      +++<th style="text-align:left">+++Alternate Operation+++</th>++++++</tr>++++++</thead>+++
-  +++<tbody>++++++<tr>++++++<td style="text-align:left">+++CREATE JOB [loading job definition]+++</td>+++
-      +++<td style="text-align:left">+++CREATE LOADING JOB [loading job definition]+++</td>++++++</tr>+++
-    +++<tr>++++++<td style="text-align:left">+++RUN JOB [for loading and schema change jobs]+++</td>+++
-      +++<td style="text-align:left">++++++<p>+++Specify the job type:+++</p>+++
-        +++<p>+++RUN LOADING JOB+++</p>+++
-        +++<p>+++RUN SCHEMA_CHANGE JOB+++</p>+++
-        +++<p>+++RUN GLOBAL SCHEMA_CHANGE JOB+++</p>++++++</td>++++++</tr>+++
-    +++<tr>++++++<td style="text-align:left">+++CREATE / SHOW/ REFRESH TOKEN+++</td>+++
-      +++<td style="text-align:left">+++To create a token, use the REST endpoint GET /requesttoken+++</td>++++++</tr>+++
-    +++<tr>++++++<td style="text-align:left">+++offline2online+++</td>+++
-      +++<td style="text-align:left">+++The offline loading job mode was discontinued in v2.0. Do not write loading
-        jobs using this syntax.+++</td>++++++</tr>++++++</tbody>++++++</table>+++
-
-[discrete]
-=== Output
-
-See xref:gsql-ref:querying:output-statements-and-file-objects.adoc#_print_statement_api_v2[PRINT Statement in 'Output Statements and File Objects']
-
-|===
-| Deprecated Syntax | Alternate Syntax
-
-| JSON API v1
-| v2 has been the default JSON format since TigerGraph 1.1. No alternate JSON version will be available.
-
-| PRINT ... TO_CSV [filepath]
-| Define a file object, then PRINT ... TO_CSV [file_object]
-|===
-
-[discrete]
-=== Built-in Queries
-
-[Run Built-in Queries in 'GSQL 101']+++<table>++++++<thead>++++++<tr>++++++<th style="text-align:left">+++Deprecated Statement+++</th>+++
-      +++<th style="text-align:left">+++Alternate Statement+++</th>++++++</tr>++++++</thead>+++
-  +++<tbody>++++++<tr>++++++<td style="text-align:left">++++++<p>+++SELECT count() FROM \...+++</p>+++
-        +++<p>+++// count may be out of date+++</p>++++++</td>+++
-      +++<td style="text-align:left">++++++<p>+++SELECT approx_count(\*) FROM \...+++</p>+++
-        +++<p>+++// same behavior as count(); may not include all the latest data updates
-          +++<br>++++++</br>++++++</p>+++
-        +++<p>+++SELECT count(*) FROM \...+++</p>+++
-        +++<p>+++// exact, but slower than approx_count(*)+++</p>++++++</td>++++++</tr>++++++</tbody>++++++</table>+++
+1 = V3.0 Removal of Previously Deprecated Features
+2 
+3 TigerGraph 2.x contained some features which were labeled as deprecated. These features are no longer necessary because they have been superseded already by improved approaches for using the TigerGraph platform. The new approaches were developed because they use more consistent grammar, are more extensible,  or offer higher performance. Therefore, TigerGraph 3.0 has streamlined the product by removing support for some of these deprecated features, listed below:
+4 
+5 [discrete]
+6 === Data Types
+7 
+8 See xref:3.2@gsql-ref:querying:data-types.adoc[Data Types in GSQL Language Reference]
+9 
+10 |===
+11 | Deprecated Type | Alternate Approach
+12 
+13 | REAL
+14 | Use FLOAT or DOUBLE
+15 
+16 | INT_SET
+17 | Use SET<INT>
+18 
+19 | INT_LIST
+20 | Use LIST<INT>
+21 
+22 | STRING_SET_COMPRESS
+23 | Use SET<STRING COMPRESS>
+24 
+25 | STRING_LIST_CONPRESS
+26 | Use LIST<STRING COMPRESS>
+27 
+28 | UINT_SET
+29 | Use SET<INT>
+30 
+31 | UINT32_UINT32_KV_LIST
+32 | Use MAP<UINT, UINT>
+33 
+34 | INT32_INT32_KV_LIST
+35 | Use MAP<INT, INT>
+36 
+37 | UINT32_UDT_KV_LIST
+38 | Use MAP<UINT, UDT_type>, where UDT_type is a user-defined tuple type
+39 
+40 | INT32_UDT_KV_LIST
+41 | Use MAP<INT, UDT_type>, where UDT_type is a user-defined tuple type
+42 |===
+43 
+44 [discrete]
+45 === Syntax for Control Flow Statements
+46 
+47 See xref:3.2@gsql-ref:querying:control-flow-statements.adoc[Control Flow Statements in GSQL Language Reference]
+48 +++<table>++++++<thead>++++++<tr>++++++<th style="text-align:left">+++Deprecated Statement+++</th>+++
+49       +++<th style="text-align:left">+++Alternate Statement+++</th>++++++</tr>++++++</thead>+++
+50   +++<tbody>++++++<tr>++++++<td style="text-align:left">+++FOREACH \... DO \... DONE+++</td>+++
+51       +++<td style="text-align:left">+++FOREACH\... DO\... END+++</td>++++++</tr>+++
+52     +++<tr>++++++<td style="text-align:left">+++FOREACH (condition) {
+53         +++<br>++++++</br>+++body
+54         +++<br>++++++</br>+++}+++</td>+++
+55       +++<td style="text-align:left">++++++<p>+++FOREACH condition DO+++</p>+++
+56         +++<p>+++body+++</p>+++
+57         +++<p>+++END+++</p>++++++</td>++++++</tr>+++
+58     +++<tr>++++++<td style="text-align:left">++++++<p>+++IF (condition) {+++</p>+++
+59         +++<p>+++body1+++</p>+++
+60         +++<p>+++} else {+++</p>+++
+61         +++<p>+++body2+++</p>+++
+62         +++<p>+++}+++</p>++++++</td>+++
+63       +++<td style="text-align:left">++++++<p>+++IF condition THEN+++</p>+++
+64         +++<p>+++body1+++</p>+++
+65         +++<p>+++ELSE+++</p>+++
+66         +++<p>+++body2+++</p>+++
+67         +++<p>+++END+++</p>++++++</td>++++++</tr>+++
+68     +++<tr>++++++<td style="text-align:left">++++++<p>+++WHILE (condition) {+++</p>+++
+69         +++<p>+++body+++</p>+++
+70         +++<p>+++}+++</p>++++++</td>+++
+71       +++<td style="text-align:left">++++++<p>+++WHILE condition DO+++</p>+++
+72         +++<p>+++body+++</p>+++
+73         +++<p>+++END+++</p>++++++</td>++++++</tr>++++++</tbody>++++++</table>+++
+74 
+75 [discrete]
+76 === Vertex Set Variable Declaration
+77 
+78 See xref:gsql-ref:querying:declaration-and-assignment-statements.adoc#_vertex_set_variable_declaration_and_assignment[Vertex Set Variable Declaration and Assignment]
+79 
+80 If a vertex type is specified, the vertex type must be within parentheses.
+81 
+82 |===
+83 | Deprecated Statement | Alternate Statement
+84 
+85 | MySet Person = ...
+86 | MySet (Person) = ...
+87 |===
+88 
+89 [discrete]
+90 === Query, Job, and Token Management
+91 
+92 
+93 +++<table>++++++<thead>++++++<tr>++++++<th style="text-align:left">+++Deprecated Operation+++</th>+++
+94       +++<th style="text-align:left">+++Alternate Operation+++</th>++++++</tr>++++++</thead>+++
+95   +++<tbody>++++++<tr>++++++<td style="text-align:left">+++CREATE JOB [loading job definition]+++</td>+++
+96       +++<td style="text-align:left">+++CREATE LOADING JOB [loading job definition]+++</td>++++++</tr>+++
+97     +++<tr>++++++<td style="text-align:left">+++RUN JOB [for loading and schema change jobs]+++</td>+++
+98       +++<td style="text-align:left">++++++<p>+++Specify the job type:+++</p>+++
+99         +++<p>+++RUN LOADING JOB+++</p>+++
+100         +++<p>+++RUN SCHEMA_CHANGE JOB+++</p>+++
+101         +++<p>+++RUN GLOBAL SCHEMA_CHANGE JOB+++</p>++++++</td>++++++</tr>+++
+102     +++<tr>++++++<td style="text-align:left">+++CREATE / SHOW/ REFRESH TOKEN+++</td>+++
+103       +++<td style="text-align:left">+++To create a token, use the REST endpoint GET /requesttoken+++</td>++++++</tr>+++
+104     +++<tr>++++++<td style="text-align:left">+++offline2online+++</td>+++
+105       +++<td style="text-align:left">+++The offline loading job mode was discontinued in v2.0. Do not write loading
+106         jobs using this syntax.+++</td>++++++</tr>++++++</tbody>++++++</table>+++
+107 
+108 [discrete]
+109 === Output
+110 
+111 See xref:gsql-ref:querying:output-statements-and-file-objects.adoc#_print_statement_api_v2[PRINT Statement in 'Output Statements and File Objects']
+112 
+113 |===
+114 | Deprecated Syntax | Alternate Syntax
+115 
+116 | JSON API v1
+117 | v2 has been the default JSON format since TigerGraph 1.1. No alternate JSON version will be available.
+118 
+119 | PRINT ... TO_CSV [filepath]
+120 | Define a file object, then PRINT ... TO_CSV [file_object]
+121 |===
+122 
+123 [discrete]
+124 === Built-in Queries
+125 
+126 [Run Built-in Queries in 'GSQL 101']+++<table>++++++<thead>++++++<tr>++++++<th style="text-align:left">+++Deprecated Statement+++</th>+++
+127       +++<th style="text-align:left">+++Alternate Statement+++</th>++++++</tr>++++++</thead>+++
+128   +++<tbody>++++++<tr>++++++<td style="text-align:left">++++++<p>+++SELECT count() FROM \...+++</p>+++
+129         +++<p>+++// count may be out of date+++</p>++++++</td>+++
+130       +++<td style="text-align:left">++++++<p>+++SELECT approx_count(\*) FROM \...+++</p>+++
+131         +++<p>+++// same behavior as count(); may not include all the latest data updates
+132           +++<br>++++++</br>++++++</p>+++
+133         +++<p>+++SELECT count(*) FROM \...+++</p>+++
+134         +++<p>+++// exact, but slower than approx_count(*)+++</p>++++++</td>++++++</tr>++++++</tbody>++++++</table>+++

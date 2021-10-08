@@ -1,599 +1,599 @@
-= Vertex-Level Access Control (Beta)
-
-Vertex-level Access Control (VLAC) allows database administrators to control data access on the vertex level by attaching tags to individual vertices on a graph (the base graph) and creating _tag-based graphs_. Tag-based graphs share the underlying data with the base graph but have their own sets of roles and privileges, which allows administrators to exercise fine-grained data access control without the vertex type boundary.
-
-Figure 1 below illustrates two tag-based graphs built upon a base graph. The base graph contains vertices of `person` type, and vertices of `post` type. Two tags (A and B) are used to tag them. For example, vertex 1 and vertex 9 both have tag A. Vertex 3 and vertex 11 both have tag A and B. A tag-based graph named `tagA` will only present to its users those base graph vertices that have tag A (the bottom-left graph). The other tag-based graph named `tagB` will only present to its users those base graph vertices that have tag B (the bottom-right graph).
-
-image::../../../.gitbook/assets/vlac-graphs-figure.png[Figure 1. Tag-based graphs as subgraphs of a Base graph]
-
-For users operating on a tag-based graph, tags are an invisible aspect that silently filters how they load and query data. A tag-based graph defines its view, and all data outside its view is invisible to it.
-
-== Prerequisites
-
-Sufficient privileges on the base graph or on the global scope are required to perform the steps described on this page.
-
-* `ACCESS_TAG`
- ** Any operation involving tags
-* `WRITE_SCHEMA`
- ** Create/run schema change jobs
- ** Create tag-based graphs
-* `READ_DATA, WRITE_DATA`
- ** Run queries that modify the graph
-* `WRITE_LOADINGJOB`, `EXECUTE_LOADINGJOB`
- ** Create/run loading jobs
-
-== Workflow - Using Vertex Level Access Control
-
-Below is the basic workflow on using the VLAC to control data access for a database administrator:
-
-=== *1. Create a tag-based graph*
-
-. <<_define_a_tag>>.
-. <<Mark vertex types as taggable>>.
-. <<Create a Tag-Based Graph>>.
-
-=== *2. Manage users of the tag-based graph*
-
-* Grant built-in roles to users on a tag-based graph
-* Define roles and grant them to users on a tag-based graph
-
-=== *3. Load and tag data*
-
-There are three main options for tagging vertices.
-
-. <<_add_tags_on_existing_data>>: A user with the privilege `ACCESS_TAG` and `WRITE_DATA` privileges on the base graph can create and run a DML query that sets tags on selected individual vertices.
-. <<Set tags explicitly with `TAGS` clause>>: A user with `EXECUTE_LOADINGJOB` , `WRITE_LOADINGJOB` and `ACCESS_TAG` privileges on the base graph can create and run a loading job that explicitly sets tags on the newly loaded base graph vertices.
-. <<_set_tags_implicitly_by_inserting_into_a_tag_based_graph>>: A user with tag-based graph loading or insert privilege (e.g., a `designer` or `querywriter`) can create an ordinary loading or upsert job which inserts new vertices. The new vertices will be automatically tagged according to the tag-based graph's schema definition.
-
-=== *4. Query and update Data*
-
-Users with data read and write privileges (e.g., the `querywriter` and `queryreader` built-in roles) can query and update the tag-based graph as they would do any other graph. The data filtering for querying or data tagging for insertion is applied automatically.
-
-The rest of this tutorial will first describe tag management: creating and dropping tags, making vertex type taggable, and using tags to define tag-based graphs. Next, the three ways to tag vertices are described and illustrated. We summarize the privilege scheme of tag-based graphs in terms of GSQL's predefined roles. Finally, we give some use cases that can be solved by VLAC.
-
-[CAUTION]
-====
-Features not yet supported:
-
-* DDL tag operations can only be done in GSQL. They are not yet supported in GraphStudio. This includes create/drop tags, create/alter vertices that are taggable, define a tag-based graph.
-* The privilege control for DDL operations (only admin and designer users should be able to explicitly manage tags) is not fully functional.
-
-In summary, all necessary operations to set up VLAC graphs and users are supported in GSQL. Due to a known bug, standard users (with `querywriter` and `queryreader` roles) can run some DDL operations which they should not be able to.
-====
-
-We'll use the graph xref:3.2@gsql-ref:querying:appendix-query/example-graphs.adoc#_socialnet[socialNet] as an example in the following sections.
-
-== Tag Management
-
-A tag is a special attribute of a vertex, which appears as a string for input and output purposes. If a vertex type is declared to be _*taggable*_, then each vertex of that type can have one or more tags. The maximum number of different tags in a global graph is 64. All operations involving tags requires the user to have the `ACCESS_TAG` privilege.
-
-=== Define a tag
-
-A tag name has to be defined via `ADD TAG` before it can be used. Each base graph defines its own set of tags. However, there is a global maximum number of different tags, currently set at 64.
-
-.Syntax for ADD TAG
-
-[source,gsql]
-----
-ADD TAG <tag_name> [DESCRIPTION <tag_description>]
-----
-
-
-
-`ADD TAG` can only be used inside a `SCHEMA_CHANGE JOB`. An example is below:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-
-CREATE SCHEMA_CHANGE JOB add_tags {
-  ADD TAG public DESCRIPTION "Open for public";
-  ADD TAG tech DESCRIPTION "All about technology";
-  ADD TAG vip DESCRIPTION "Very Important Person";
-  ADD TAG dummy DESCRIPTION "Yeah, just a dummy";
-}
-RUN SCHEMA_CHANGE JOB add_tags
-----
-
-=== List tags
-
-Run `ls` to see a list of defined tags:
-
-[source,gsql]
-----
-...
-
-Tags:
-- TAG public DESCRIPTION "Open for public"
-- TAG tech DESCRIPTION "All about technology"
-- TAG vip DESCRIPTION "Very Important Person"
-- TAG dummy DESCRIPTION "Yeah, just a dummy"
-----
-
-=== Drop a tag
-
-The `DROP TAG` command not only removes the given tag(s) from the catalog of available tags, but also deletes them from each vertex to which it is attached. You can drop multiple tags in one statement.
-
-.Syntax for DROP TAG
-
-[source,gsql]
-----
-DROP TAG <tag_name> ["," <tag_name>]*
-----
-
-
-
-Like `ADD TAG`, `DROP TAG` also needs to be inside a `SCHEMA_CHANGE JOB`:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-
-CREATE SCHEMA_CHANGE JOB drop_dummy_tag {
-  DROP TAG dummy;
-}
-RUN SCHEMA_CHANGE JOB drop_dummy_tag
-----
-
-[NOTE]
-====
-
-. You cannot drop a tag if it is used in the definition of a tag-based graph. You must drop the graph first.
-. When `DROP TAG` is executed, the specified tags will be made invalid, and then the foreground process will complete. A background process will continue to run to remove the tags from all data. In the meantime, each dropped tag still takes up one of the 64 slots for tags. The slot(s) will become available once the background process finishes.
-====
-
-== Create a tag-based graph
-
-A tag-based graph is a filtered view of a base graph, where a base graph is a simple collection of vertex types and edge types, without any tag specifiers. A tag-based graph must include at least one _*taggable vertex type*_ from the base graph.
-
-=== Mark vertex types as taggable
-
-A vertex type has to be _*taggable*_ to accept tags. `TAGGABLE` is a boolean property of a vertex type that can be set with `CREATE VERTEX` initially or with `ALTER VERTEX` in a schema change job:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-
-# in general, this would be a local schema change job, but in socialNet, the
-# vertex types are global, so this needs to be a global schema change job
-CREATE GLOBAL SCHEMA_CHANGE JOB make_taggable {
-  ALTER VERTEX person WITH TAGGABLE="true";
-  ALTER VERTEX post WITH TAGGABLE="true";
-}
-
-RUN GLOBAL SCHEMA_CHANGE JOB make_taggable
-----
-
-The property TAGGABLE is false by default. To change this default, use the `WITH` clause below when creating a vertex type:
-
-[source,gsql]
-----
-CREATE VERTEX v2(PRIMARY_ID id UINT, name STRING) WITH TAGGABLE="true"
-----
-
-[NOTE]
-====
-
-. To change a vertex type from taggable to untaggable, use `WITH TAGGABLE="false".`
-. You cannot make a vertex type untaggable if it is used in the definition of a tag-based graph.
-. Edge types are never tagged. See the next section to see how we determine which edges to include in the tag-based graph.
-====
-
-=== Create a Tag-Based Graph
-
-After a tag set and taggable vertex types have been created, we can use the tags to define a tag-based graph. For each vertex type we want to include, we may also specify a tag expression which must be satisfied for an individual vertex to be included.
-
-*Examples*
-
-Here is an example of creating a tag-based graph from the base graph `socialNet`.
-
-[source,gsql]
-----
-USE GRAPH socialNet
-CREATE GRAPH vipNet AS socialNet(person:vip, post, friend, posted, liked)
-----
-
-The interpretation is "Starting from the `socialNet` graph, create a tag-based graph called `vipNet` which includes `person` vertices which are tagged '[.code]``vip``'. Also include all `post` vertices and all `friend`, `posted` and `liked` edges."
-
-Edges do not have tag expressions. An edge will be included when both of its vertex endpoints are included (and its edge type is included in the tag graph schema).
-
-To describe a combination of tags, use the `&` operator to combine the tags:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-CREATE GRAPH mixedNet AS socialNet(person:public&vip, post:public&tech&dummy, friend, posted, liked)
-----
-
-The graph `mixedNet` will only include the `person` vertices having both the `public` and ``vip``tags, and posts having all three of the `public` , `tech` and `dummy` tags.
-
-*Same tag for all vertex types*
-
-If the desired tag-based graph is "anything in the base graph that has these tags", there is a convenient shortcut:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-CREATE GRAPH publicNet2 AS socialNet:public
-----
-
-is the same as
-
-[source,gsql]
-----
-USE GRAPH socialNet
-CREATE GRAPH publicNet1 AS socialNet(person:public, post:public, friend, posted, liked)
-----
-
-*General Syntax*
-
-The formal syntax for both the general form and the simplified form of creating a tag-based graph is shown below:
-
-.Syntax for CREATE GRAPH for a tag-based graph
-
-[source,gsql]
-----
-<create_tag_graph> :=
-    CREATE GRAPH <tag_graph_name> AS <base_graph_name>
-    ( "(" <tagged_element_name> ("," <tagged_element_name>)* ")" | ":" <tag_expr> )
-
-<tagged_element_name> := <tagged_vertex_name> | <edge_name>
-
-<tagged_vertex_name> := <vertex_name> [":" <tag_expr>]
-
-<tag_expr> := <tag> ("&" <tag_expr>)*
-----
-
-
-
-== How To Tag Vertices
-
-There are three main options for tagging vertices in the base graph.
-
-* *Add tags on existing data with DML queries.* For existing data, a user with base graph tagging privilege (e.g., an `admin` or `designer`) can create and run a DML query that sets tags on selected individual vertices.
-* *Explicitly set tags when loading/inserting to a base graph*. For new data, a user with base graph loading and tagging privilege (e.g., an `admin` or `designer`) can create and run a loading job that explicitly sets tags on the newly loaded vertices.
-* *Implicitly set tags when loading/inserting into a tag-based graph*.  For new data, a user with tag-based graph loading or insert privilege (e.g., a `designer` or `querywriter`) can create an ordinary Loading or Upsert Job which inserts new vertices. The new vertices will be automatically tagged according to the tag-based graph's schema definition.
-
-=== Add tags on existing data
-
-In GSQL, special vertex methods are provided to access and modify the tags of a vertex in a DML query (full list available on page xref:3.2@gsql-ref:querying:func/vertex-methods.adoc[]).
-These functions are only available for vertex aliases (defined in the `FROM` clause of a `SELECT` statement); they cannot be applied to vertex variables in other contexts.
-
-There are xref:3.2@gsql-ref:querying:func/vertex-methods.adoc[8 DML-level tag-access functions] in the vertex-query block or edge-query block. Use the xref:3.2@gsql-ref:querying:func/vertex-methods.adoc#_addtags[addTags()] function to tag a vertex.
-
-==== Required privilege
-
-`READ_DATA`, `WRITE_DATA`, `WRITE_QUERY` , `ACCESS_TAG`
-
-[NOTE]
-====
-To add or modify tags, you should work at the base graph level.
-====
-
-*Examples*
-
-`addTags()` is shown below. This query will add tags to person vertices to achieve the same effect as a base graph loading job example in the previous section.
-
-[source,gsql]
-----
-CREATE QUERY addTagsToPerson() {
-  Seed = { any };
-  # person1 ~ person5 will be tagged as public.
-  vSet = SELECT s
-         FROM Seed:s
-         WHERE s.id IN ("person1","person2","person3","person4","person5")
-         ACCUM s.addTags("public");
-
-  # person6 and person7 will be tagged as public and vip.
-  vSet = SELECT s
-         FROM Seed:s
-         WHERE s.id IN ("person6","person7")
-         ACCUM s.addTags("vip", "public");
-
-  # person8 will be tagged as vip
-  vSet = SELECT s
-         FROM Seed:s
-         WHERE s.id == "person8"
-         ACCUM s.addTags("vip");
-}
-----
-
-Use xref:3.2@gsql-ref:querying:func/vertex-methods.adoc#_removetags[] and xref:3.2@gsql-ref:querying:func/vertex-methods.adoc#_removealltags[] to remove tags from vertices:
-
-[source,gsql]
-----
-// remove tag “vip” and “public” from all person vertices.
-CREATE QUERY removetagsFromPerson() {
-  vSet = { person.* };
-  # remove tag vip and public from all person vertices
-  vSet = SELECT s
-         FROM vSet:s
-         ACCUM s.removeTags("vip", "public");
-}
-
-// remove all tags from all person vertices.
-CREATE QUERY removealltagsFromPerson() {
-  vSet = { person.* };
-  # remove all tags from all person vertices
-  vSet = SELECT s
-         FROM vSet:s
-         ACCUM s.removeAllTags();
-}
-----
-
-=== Set tags explicitly with `TAGS` clause
-
-Tags can be added to vertices at their loading time using a base graph loading job.
-
-The `LOAD` statement has an optional clause for explicit tagging of loaded data. The tagging clause has two keywords, `TAGS` and `BY:`
-
-* `TAGS(<tag_list>)` specifies the tags to be set.
-* `BY` specifies how to merge tags if the targeted vertex exists in the graph
- ** ``BY OR:``Add the given tags to the existing set of tags.
- ** `BY OVERWRITE:` Replace the existing tags with the given ones.
-
-==== Required privilege
-
-`WRITE_LOADINGJOB` , `EXECUTE_LOADINGJOB`, `ACCESS_TAG`
-
-*Example 1*
-
-Suppose we want to put the tags `vip` and `public` on the `person` vertex data coming from a certain file. We have three files: `persons1`, `persons2`, `persons3`.
-
-[source,gsql]
-----
-$ cat persons1
-person1,Male
-person2,Female
-person3,Male
-person4,Female
-person5,Female
-
-$ cat persons2
-person6,Male
-person7,Male
-
-$ cat persons3
-id,gender,label
-person8,Male,vip
-----
-
-Create and run three loading jobs:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-
-# person1 - person5 will be tagged as public.
-CREATE LOADING JOB loadPersonPublic {
-  DEFINE filename f;
-  LOAD f TO VERTEX person VALUES($0, $0, $1) TAGS("public") BY OR;
-}
-RUN LOADING JOB loadPersonPublic USING f="./persons1"
-
-# person6 and person7 will be tagged as public and vip.
-CREATE LOADING JOB loadPersonPublicVip {
-  DEFINE filename f;
-  LOAD f TO VERTEX person VALUES($0, $0, $1) TAGS("public", "vip") BY OR;
-}
-RUN LOADING JOB loadPersonPublicVip USING f="./persons2"
-
-# person8 will be tagged as vip which is derived from the file.
-CREATE LOADING JOB loadPerson {
-  DEFINE filename f;
-  LOAD f TO VERTEX person VALUES($0, $0, $1) TAGS($2) BY OR USING HEADER="true";
-}
-RUN LOADING JOB loadPerson USING f="./persons3"
-----
-
-Note that the `TAGS` clause can specify a tag with a string literal (`"vip"`) so every vertex gets the same tag, or with a token reference by position (`$2`) or by name (`$"label"`) from the source file, so each vertex gets a data-dependent tag. If the tag clause refers to a non-existent tag, the loading job will still run, but the data will not be loaded at runtime. The loading job log will report these non-loaded vertices.
-
-*Example 2*
-
-We have three post files: `posts1`, `posts2`, and `posts3`.
-
-[source,gsql]
-----
-$ cat posts1
-3,cats,2011-02-05 01:02:44
-8,cats,2011-02-03 17:05:52
-9,cats,2011-02-05 23:12:42
-10,cats,2011-02-04 03:02:31
-11,cats,2011-02-03 01:02:21
-
-$ cat posts2
-4,coffee,2011-02-07 05:02:51
-
-$ cat posts3
-0,Graphs,2010-01-12 11:22:05
-1,tigergraph,2011-03-03 23:02:00
-2,query languages,2011-02-03 01:02:42
-5,tigergraph,2011-02-06 01:02:02
-6,tigergraph,2011-02-05 02:02:05
-7,Graphs,2011-02-04 17:02:41
-----
-
-We create and run the following loading jobs:
-
-[source,gsql]
-----
-USE GRAPH socialNet
-
-# posts 3, 8, 9, 10, and 11 will be tagged as public.
-CREATE LOADING JOB loadPostPublic {
-  DEFINE filename f;
-  LOAD f TO VERTEX post VALUES($0, $1, $2) TAGS("public") BY OR ;
-}
-RUN LOADING JOB loadPostPublic USING f="./posts1"
-
-# posts 0, 1, 2, 5, 6, and 7 will be tagged as both public and tech.
-CREATE LOADING JOB loadPostPublicTech {
-  DEFINE filename f;
-  LOAD f TO VERTEX post VALUES($0, $1, $2) TAGS("public", "tech") BY OR;
-}
-RUN LOADING JOB loadPostPublicTech USING f="./posts3"
-
-# post 4 will remain untagged.
-----
-
-=== *Set tags implicitly by inserting into a tag-based graph*
-
-Loading data to a tag-based graph automatically tags each vertex with the tags specified in the graph's definition. For example, when loading to `vipNet`, the `person` vertices will automatically be tagged with `vip`.
-
-If you load data into a tag-based graph, these vertices are actually being added to the parent base graph. If two tag-based graphs have overlapping views (e.g. if the graph `vipNet2` also includes `person:vip`), then when one adds a vertex via the tag-based graph, the other tag-based graph may also see it.
-
-[source,gsql]
-----
-USE GRAPH vipNet
-
-CREATE LOADING JOB loadMember {
-  DEFINE filename f;
-  // TAGS("vip") BY OR will be applied implicitly
-  // since vipNet is defined based on person:vip
-  LOAD f TO VERTEX person VALUES($0, $0, $1);
-}
-RUN LOADING JOB loadMember USING f="./persons3"
-----
-
-[NOTE]
-====
-
-* *Portability and Reusability*: The same loading job works for `socialNet` or any graph derived from `socialNet` which contains `person`. The difference is in the effect: running it with `vipNet` will apply the `vip` tag. Running it with a different tag-based graph would apply different tags. _Users of a given tag-based graph automatically insert and query data for that tag-based graph._
-* *Tagging Shared Data*: The default behavior of GSQL loading is upsert: if you attempt to *insert* a vertex or edge which already exists (e.g., uses an existing ID), you will instead *update* the existing element with the new attribute values. If the attribute is a list or set, the new values will be added to the existing list/set.  This applies to tags. If you attempt to load an existing vertex, the new tag(s) will be added to any existing tags. _Loading a vertex that already exists extends the tag set with the guidance of the tag-graph schema._
-====
-
-== Query a Tag-based Graph
-
-The graph `vipNet` only includes vertices with the tag `vip`. We can verify this by running a simple query to return all person vertices in `vipNet`:
-
-[source,gsql]
-----
-USE GRAPH vipNet
-
-CREATE QUERY findAll() {
-  seed = {person.*};
-  result =
-    SELECT v
-    FROM seed:v
-    ORDER BY v.id;
-
-  PRINT result;
-}
-INSTALL QUERY findAll
-RUN QUERY findAll()
-----
-
-The output of the query would be:
-
-[source,gsql]
-----
-{
-  "error": false,
-  "message": "",
-  "version": {
-    "schema": 2,
-    "edition": "enterprise",
-    "api": "v2"
-  },
-  "results": [{"res": [
-    {
-      "v_id": "person6",
-      "attributes": {
-        "gender": "Male",
-        "id": "person6"
-      },
-      "v_type": "person"
-    },
-    {
-      "v_id": "person7",
-      "attributes": {
-        "gender": "Male",
-        "id": "person7"
-      },
-      "v_type": "person"
-    },
-    {
-      "v_id": "person8",
-      "attributes": {
-        "gender": "Male",
-        "id": "person8"
-      },
-      "v_type": "person"
-    }
-  ]}]
-}
-----
-
-== Access Control
-
-Users with global `WRITE_SCHEMA` and `ACCESS_TAG` privileges can create, modify and drop tags, as well as create tag-based graphs for all graphs.
-
-[discrete]
-==== On the base graph
-
-Users with roles on the base graph that have the `ACCESS_TAG` privilege (e.g.`admin` and `designer` roles) can create/drop tags, and tag vertices. Users that have both the `ACCESS_TAG` privilege and `WRITE_SCHEMA` privilege (e.g. `admin` and `designer` roles) can create/drop tag-based graphs of the base graph.
-
-Users with roles that don't have the `ACCESS_TAG` privilege on the base graph are able to access the base graph as their roles allow, but they do not have access to the tags on the base graph. They cannot see whether any vertex type on the graph is taggable or if there are tag-based graphs of the base graph.
-
-Users with roles on the tag-based graphs of the base graph cannot access the base graph if they don't have a role with privileges for the base graph.
-
-[discrete]
-==== On tag-based graphs
-
-When a new tag-based graph is created, users with `admin` or `designer` roles will inherit their base graph role on the tag-based graph. Additionally, the creator of the tag-based graph becomes an admin of the tag-based graph.
-
-Users who are given roles on a tag-based graph have the privileges on the tag-based graph that correspond to their roles, except they are not allowed to edit the tag-based graph's graph schema.
-
-== Sample Use Cases
-
-[discrete]
-==== *Scenario I*
-
-*Problem*
-
-A user with `admin` role on a graph wants to grant a group of users access to a selective set of vertices.
-
-*Solution*
-
-The base graph admin can do the following security setup.
-
-. *Define a tag*. In a schema change job, <<_define_a_tag>> `T` for this application.
-. *Mark vertex types as taggable*. Identify the vertex types you want to give selective access for, and xref:vlac.adoc#_mark_vertex_types_as_taggable[mark those vertex types as taggable] in a schema change job.
-. *Define a tag-based graph*. xref:vlac.adoc#_create_a_tag_based_graph[Define a tag-based graph] `B` with the taggable vertex types, with `T` as their tag expression.
-. *Tag vertices*. Write a DML query on the base graph and use the tag functions in the query to xref:vlac.adoc#_add_tags_on_existing_data[tag the vertices] you want to include in the tag-based graph, and run the query.
-. *Grant users permission to the tag-based graph*. On the tag-based graph B, grant roles that have the appropriate privileges for graph `B` to the target users.
-
-[discrete]
-==== *Scenario II*
-
-*Problem*
-
-You have a source file containing class annotations (tags) on vertex data. You want to grant users access to the vertices that have the annotation `T1`. In the future, you also want the ability to give other users access to vertices based on the vertex class.
-
-*Solution*
-
-The base graph `admin` user can do the following setup.
-
-. *Define tags*. xref:vlac.adoc#_define_a_tag[Declare tags] `T1, T2, … Tn` for all the classes in your source file in a schema change job.
-. *Mark vertex types as taggable*. Identify the vertex types of the vertices in your source file that have class annotations, and link:#_mark_vertex_types_as_taggable[mark those vertex types as taggable] in a schema change job.
-. *Define a tag-based graph*. xref:vlac.adoc#_create_a_tag_based_graph[Define a tag-based graph] `B` with `T1` as the tag expression.
-. *Explicitly tag vertices during data loading*. Write a base graph loading job, and in the loading job, use a `TAGS() BY` clause to xref:vlac.adoc#_set_tags_explicitly_with_tags_clause[explicitly add tags] to the ingested vertices.
-. *Grant roles on the tag-based graph*. On the tag-based graph `B`, grant roles that have the appropriate privileges for the graph `B` to target users.
-
-[discrete]
-==== *Scenario III*
-
-*Problem*
-
-An `admin` user on a graph wants to give a group of users read/write access for a specific class of vertices. The users would be able to insert new vertices into the graph and query the data, and all the data they insert into the graph are tagged as the same class.
-
-*Solution*
-
-The base graph admin can do the following setup.
-
-* *Define a tag*. xref:vlac.adoc#_define_a_tag[Declare a tag] `T` for this application in a schema change job.
-* *Mark vertex types as taggable*. Identify the vertex types to give selective access to, and xref:vlac.adoc#_mark_vertex_types_as_taggable[mark the relevant vertex types as taggable] in a schema change job.
-* *Define a tag-based graph*. link:#_create_a_tag_based_graph[Define a tag-based graph] `B` with `T` as the tag expression.
-* *Grant roles on the tag-based graph*. On the tag-based graph, grant roles with the appropriate privileges to target users.
-
-These group users operate (including delete/update/insert) on graph `B` as if it is a normal graph. They can ingest new data, as well as operate on those vertices from the base graph that have the tag `T`.
+1 = Vertex-Level Access Control (Beta)
+2 
+3 Vertex-level Access Control (VLAC) allows database administrators to control data access on the vertex level by attaching tags to individual vertices on a graph (the base graph) and creating _tag-based graphs_. Tag-based graphs share the underlying data with the base graph but have their own sets of roles and privileges, which allows administrators to exercise fine-grained data access control without the vertex type boundary.
+4 
+5 Figure 1 below illustrates two tag-based graphs built upon a base graph. The base graph contains vertices of `person` type, and vertices of `post` type. Two tags (A and B) are used to tag them. For example, vertex 1 and vertex 9 both have tag A. Vertex 3 and vertex 11 both have tag A and B. A tag-based graph named `tagA` will only present to its users those base graph vertices that have tag A (the bottom-left graph). The other tag-based graph named `tagB` will only present to its users those base graph vertices that have tag B (the bottom-right graph).
+6 
+7 image::vlac-graphs-figure.png[Figure 1. Tag-based graphs as subgraphs of a Base graph]
+8 
+9 For users operating on a tag-based graph, tags are an invisible aspect that silently filters how they load and query data. A tag-based graph defines its view, and all data outside its view is invisible to it.
+10 
+11 == Prerequisites
+12 
+13 Sufficient privileges on the base graph or on the global scope are required to perform the steps described on this page.
+14 
+15 * `ACCESS_TAG`
+16  ** Any operation involving tags
+17 * `WRITE_SCHEMA`
+18  ** Create/run schema change jobs
+19  ** Create tag-based graphs
+20 * `READ_DATA, WRITE_DATA`
+21  ** Run queries that modify the graph
+22 * `WRITE_LOADINGJOB`, `EXECUTE_LOADINGJOB`
+23  ** Create/run loading jobs
+24 
+25 == Workflow - Using Vertex Level Access Control
+26 
+27 Below is the basic workflow on using the VLAC to control data access for a database administrator:
+28 
+29 === *1. Create a tag-based graph*
+30 
+31 . <<_define_a_tag>>.
+32 . <<Mark vertex types as taggable>>.
+33 . <<Create a Tag-Based Graph>>.
+34 
+35 === *2. Manage users of the tag-based graph*
+36 
+37 * Grant built-in roles to users on a tag-based graph
+38 * Define roles and grant them to users on a tag-based graph
+39 
+40 === *3. Load and tag data*
+41 
+42 There are three main options for tagging vertices.
+43 
+44 . <<_add_tags_on_existing_data>>: A user with the privilege `ACCESS_TAG` and `WRITE_DATA` privileges on the base graph can create and run a DML query that sets tags on selected individual vertices.
+45 . <<Set tags explicitly with `TAGS` clause>>: A user with `EXECUTE_LOADINGJOB` , `WRITE_LOADINGJOB` and `ACCESS_TAG` privileges on the base graph can create and run a loading job that explicitly sets tags on the newly loaded base graph vertices.
+46 . <<_set_tags_implicitly_by_inserting_into_a_tag_based_graph>>: A user with tag-based graph loading or insert privilege (e.g., a `designer` or `querywriter`) can create an ordinary loading or upsert job which inserts new vertices. The new vertices will be automatically tagged according to the tag-based graph's schema definition.
+47 
+48 === *4. Query and update Data*
+49 
+50 Users with data read and write privileges (e.g., the `querywriter` and `queryreader` built-in roles) can query and update the tag-based graph as they would do any other graph. The data filtering for querying or data tagging for insertion is applied automatically.
+51 
+52 The rest of this tutorial will first describe tag management: creating and dropping tags, making vertex type taggable, and using tags to define tag-based graphs. Next, the three ways to tag vertices are described and illustrated. We summarize the privilege scheme of tag-based graphs in terms of GSQL's predefined roles. Finally, we give some use cases that can be solved by VLAC.
+53 
+54 [CAUTION]
+55 ====
+56 Features not yet supported:
+57 
+58 * DDL tag operations can only be done in GSQL. They are not yet supported in GraphStudio. This includes create/drop tags, create/alter vertices that are taggable, define a tag-based graph.
+59 * The privilege control for DDL operations (only admin and designer users should be able to explicitly manage tags) is not fully functional.
+60 
+61 In summary, all necessary operations to set up VLAC graphs and users are supported in GSQL. Due to a known bug, standard users (with `querywriter` and `queryreader` roles) can run some DDL operations which they should not be able to.
+62 ====
+63 
+64 We'll use the graph xref:3.2@gsql-ref:querying:appendix-query/example-graphs.adoc#_socialnet[socialNet] as an example in the following sections.
+65 
+66 == Tag Management
+67 
+68 A tag is a special attribute of a vertex, which appears as a string for input and output purposes. If a vertex type is declared to be _*taggable*_, then each vertex of that type can have one or more tags. The maximum number of different tags in a global graph is 64. All operations involving tags requires the user to have the `ACCESS_TAG` privilege.
+69 
+70 === Define a tag
+71 
+72 A tag name has to be defined via `ADD TAG` before it can be used. Each base graph defines its own set of tags. However, there is a global maximum number of different tags, currently set at 64.
+73 
+74 .Syntax for ADD TAG
+75 
+76 [source,gsql]
+77 ----
+78 ADD TAG <tag_name> [DESCRIPTION <tag_description>]
+79 ----
+80 
+81 
+82 
+83 `ADD TAG` can only be used inside a `SCHEMA_CHANGE JOB`. An example is below:
+84 
+85 [source,gsql]
+86 ----
+87 USE GRAPH socialNet
+88 
+89 CREATE SCHEMA_CHANGE JOB add_tags {
+90   ADD TAG public DESCRIPTION "Open for public";
+91   ADD TAG tech DESCRIPTION "All about technology";
+92   ADD TAG vip DESCRIPTION "Very Important Person";
+93   ADD TAG dummy DESCRIPTION "Yeah, just a dummy";
+94 }
+95 RUN SCHEMA_CHANGE JOB add_tags
+96 ----
+97 
+98 === List tags
+99 
+100 Run `ls` to see a list of defined tags:
+101 
+102 [source,gsql]
+103 ----
+104 ...
+105 
+106 Tags:
+107 - TAG public DESCRIPTION "Open for public"
+108 - TAG tech DESCRIPTION "All about technology"
+109 - TAG vip DESCRIPTION "Very Important Person"
+110 - TAG dummy DESCRIPTION "Yeah, just a dummy"
+111 ----
+112 
+113 === Drop a tag
+114 
+115 The `DROP TAG` command not only removes the given tag(s) from the catalog of available tags, but also deletes them from each vertex to which it is attached. You can drop multiple tags in one statement.
+116 
+117 .Syntax for DROP TAG
+118 
+119 [source,gsql]
+120 ----
+121 DROP TAG <tag_name> ["," <tag_name>]*
+122 ----
+123 
+124 
+125 
+126 Like `ADD TAG`, `DROP TAG` also needs to be inside a `SCHEMA_CHANGE JOB`:
+127 
+128 [source,gsql]
+129 ----
+130 USE GRAPH socialNet
+131 
+132 CREATE SCHEMA_CHANGE JOB drop_dummy_tag {
+133   DROP TAG dummy;
+134 }
+135 RUN SCHEMA_CHANGE JOB drop_dummy_tag
+136 ----
+137 
+138 [NOTE]
+139 ====
+140 
+141 . You cannot drop a tag if it is used in the definition of a tag-based graph. You must drop the graph first.
+142 . When `DROP TAG` is executed, the specified tags will be made invalid, and then the foreground process will complete. A background process will continue to run to remove the tags from all data. In the meantime, each dropped tag still takes up one of the 64 slots for tags. The slot(s) will become available once the background process finishes.
+143 ====
+144 
+145 == Create a tag-based graph
+146 
+147 A tag-based graph is a filtered view of a base graph, where a base graph is a simple collection of vertex types and edge types, without any tag specifiers. A tag-based graph must include at least one _*taggable vertex type*_ from the base graph.
+148 
+149 === Mark vertex types as taggable
+150 
+151 A vertex type has to be _*taggable*_ to accept tags. `TAGGABLE` is a boolean property of a vertex type that can be set with `CREATE VERTEX` initially or with `ALTER VERTEX` in a schema change job:
+152 
+153 [source,gsql]
+154 ----
+155 USE GRAPH socialNet
+156 
+157 # in general, this would be a local schema change job, but in socialNet, the
+158 # vertex types are global, so this needs to be a global schema change job
+159 CREATE GLOBAL SCHEMA_CHANGE JOB make_taggable {
+160   ALTER VERTEX person WITH TAGGABLE="true";
+161   ALTER VERTEX post WITH TAGGABLE="true";
+162 }
+163 
+164 RUN GLOBAL SCHEMA_CHANGE JOB make_taggable
+165 ----
+166 
+167 The property TAGGABLE is false by default. To change this default, use the `WITH` clause below when creating a vertex type:
+168 
+169 [source,gsql]
+170 ----
+171 CREATE VERTEX v2(PRIMARY_ID id UINT, name STRING) WITH TAGGABLE="true"
+172 ----
+173 
+174 [NOTE]
+175 ====
+176 
+177 . To change a vertex type from taggable to untaggable, use `WITH TAGGABLE="false".`
+178 . You cannot make a vertex type untaggable if it is used in the definition of a tag-based graph.
+179 . Edge types are never tagged. See the next section to see how we determine which edges to include in the tag-based graph.
+180 ====
+181 
+182 === Create a Tag-Based Graph
+183 
+184 After a tag set and taggable vertex types have been created, we can use the tags to define a tag-based graph. For each vertex type we want to include, we may also specify a tag expression which must be satisfied for an individual vertex to be included.
+185 
+186 *Examples*
+187 
+188 Here is an example of creating a tag-based graph from the base graph `socialNet`.
+189 
+190 [source,gsql]
+191 ----
+192 USE GRAPH socialNet
+193 CREATE GRAPH vipNet AS socialNet(person:vip, post, friend, posted, liked)
+194 ----
+195 
+196 The interpretation is "Starting from the `socialNet` graph, create a tag-based graph called `vipNet` which includes `person` vertices which are tagged '[.code]``vip``'. Also include all `post` vertices and all `friend`, `posted` and `liked` edges."
+197 
+198 Edges do not have tag expressions. An edge will be included when both of its vertex endpoints are included (and its edge type is included in the tag graph schema).
+199 
+200 To describe a combination of tags, use the `&` operator to combine the tags:
+201 
+202 [source,gsql]
+203 ----
+204 USE GRAPH socialNet
+205 CREATE GRAPH mixedNet AS socialNet(person:public&vip, post:public&tech&dummy, friend, posted, liked)
+206 ----
+207 
+208 The graph `mixedNet` will only include the `person` vertices having both the `public` and ``vip``tags, and posts having all three of the `public` , `tech` and `dummy` tags.
+209 
+210 *Same tag for all vertex types*
+211 
+212 If the desired tag-based graph is "anything in the base graph that has these tags", there is a convenient shortcut:
+213 
+214 [source,gsql]
+215 ----
+216 USE GRAPH socialNet
+217 CREATE GRAPH publicNet2 AS socialNet:public
+218 ----
+219 
+220 is the same as
+221 
+222 [source,gsql]
+223 ----
+224 USE GRAPH socialNet
+225 CREATE GRAPH publicNet1 AS socialNet(person:public, post:public, friend, posted, liked)
+226 ----
+227 
+228 *General Syntax*
+229 
+230 The formal syntax for both the general form and the simplified form of creating a tag-based graph is shown below:
+231 
+232 .Syntax for CREATE GRAPH for a tag-based graph
+233 
+234 [source,gsql]
+235 ----
+236 <create_tag_graph> :=
+237     CREATE GRAPH <tag_graph_name> AS <base_graph_name>
+238     ( "(" <tagged_element_name> ("," <tagged_element_name>)* ")" | ":" <tag_expr> )
+239 
+240 <tagged_element_name> := <tagged_vertex_name> | <edge_name>
+241 
+242 <tagged_vertex_name> := <vertex_name> [":" <tag_expr>]
+243 
+244 <tag_expr> := <tag> ("&" <tag_expr>)*
+245 ----
+246 
+247 
+248 
+249 == How To Tag Vertices
+250 
+251 There are three main options for tagging vertices in the base graph.
+252 
+253 * *Add tags on existing data with DML queries.* For existing data, a user with base graph tagging privilege (e.g., an `admin` or `designer`) can create and run a DML query that sets tags on selected individual vertices.
+254 * *Explicitly set tags when loading/inserting to a base graph*. For new data, a user with base graph loading and tagging privilege (e.g., an `admin` or `designer`) can create and run a loading job that explicitly sets tags on the newly loaded vertices.
+255 * *Implicitly set tags when loading/inserting into a tag-based graph*.  For new data, a user with tag-based graph loading or insert privilege (e.g., a `designer` or `querywriter`) can create an ordinary Loading or Upsert Job which inserts new vertices. The new vertices will be automatically tagged according to the tag-based graph's schema definition.
+256 
+257 === Add tags on existing data
+258 
+259 In GSQL, special vertex methods are provided to access and modify the tags of a vertex in a DML query (full list available on page xref:3.2@gsql-ref:querying:func/vertex-methods.adoc[]).
+260 These functions are only available for vertex aliases (defined in the `FROM` clause of a `SELECT` statement); they cannot be applied to vertex variables in other contexts.
+261 
+262 There are xref:3.2@gsql-ref:querying:func/vertex-methods.adoc[8 DML-level tag-access functions] in the vertex-query block or edge-query block. Use the xref:3.2@gsql-ref:querying:func/vertex-methods.adoc#_addtags[addTags()] function to tag a vertex.
+263 
+264 ==== Required privilege
+265 
+266 `READ_DATA`, `WRITE_DATA`, `WRITE_QUERY` , `ACCESS_TAG`
+267 
+268 [NOTE]
+269 ====
+270 To add or modify tags, you should work at the base graph level.
+271 ====
+272 
+273 *Examples*
+274 
+275 `addTags()` is shown below. This query will add tags to person vertices to achieve the same effect as a base graph loading job example in the previous section.
+276 
+277 [source,gsql]
+278 ----
+279 CREATE QUERY addTagsToPerson() {
+280   Seed = { any };
+281   # person1 ~ person5 will be tagged as public.
+282   vSet = SELECT s
+283          FROM Seed:s
+284          WHERE s.id IN ("person1","person2","person3","person4","person5")
+285          ACCUM s.addTags("public");
+286 
+287   # person6 and person7 will be tagged as public and vip.
+288   vSet = SELECT s
+289          FROM Seed:s
+290          WHERE s.id IN ("person6","person7")
+291          ACCUM s.addTags("vip", "public");
+292 
+293   # person8 will be tagged as vip
+294   vSet = SELECT s
+295          FROM Seed:s
+296          WHERE s.id == "person8"
+297          ACCUM s.addTags("vip");
+298 }
+299 ----
+300 
+301 Use xref:3.2@gsql-ref:querying:func/vertex-methods.adoc#_removetags[] and xref:3.2@gsql-ref:querying:func/vertex-methods.adoc#_removealltags[] to remove tags from vertices:
+302 
+303 [source,gsql]
+304 ----
+305 // remove tag “vip” and “public” from all person vertices.
+306 CREATE QUERY removetagsFromPerson() {
+307   vSet = { person.* };
+308   # remove tag vip and public from all person vertices
+309   vSet = SELECT s
+310          FROM vSet:s
+311          ACCUM s.removeTags("vip", "public");
+312 }
+313 
+314 // remove all tags from all person vertices.
+315 CREATE QUERY removealltagsFromPerson() {
+316   vSet = { person.* };
+317   # remove all tags from all person vertices
+318   vSet = SELECT s
+319          FROM vSet:s
+320          ACCUM s.removeAllTags();
+321 }
+322 ----
+323 
+324 === Set tags explicitly with `TAGS` clause
+325 
+326 Tags can be added to vertices at their loading time using a base graph loading job.
+327 
+328 The `LOAD` statement has an optional clause for explicit tagging of loaded data. The tagging clause has two keywords, `TAGS` and `BY:`
+329 
+330 * `TAGS(<tag_list>)` specifies the tags to be set.
+331 * `BY` specifies how to merge tags if the targeted vertex exists in the graph
+332  ** ``BY OR:``Add the given tags to the existing set of tags.
+333  ** `BY OVERWRITE:` Replace the existing tags with the given ones.
+334 
+335 ==== Required privilege
+336 
+337 `WRITE_LOADINGJOB` , `EXECUTE_LOADINGJOB`, `ACCESS_TAG`
+338 
+339 *Example 1*
+340 
+341 Suppose we want to put the tags `vip` and `public` on the `person` vertex data coming from a certain file. We have three files: `persons1`, `persons2`, `persons3`.
+342 
+343 [source,gsql]
+344 ----
+345 $ cat persons1
+346 person1,Male
+347 person2,Female
+348 person3,Male
+349 person4,Female
+350 person5,Female
+351 
+352 $ cat persons2
+353 person6,Male
+354 person7,Male
+355 
+356 $ cat persons3
+357 id,gender,label
+358 person8,Male,vip
+359 ----
+360 
+361 Create and run three loading jobs:
+362 
+363 [source,gsql]
+364 ----
+365 USE GRAPH socialNet
+366 
+367 # person1 - person5 will be tagged as public.
+368 CREATE LOADING JOB loadPersonPublic {
+369   DEFINE filename f;
+370   LOAD f TO VERTEX person VALUES($0, $0, $1) TAGS("public") BY OR;
+371 }
+372 RUN LOADING JOB loadPersonPublic USING f="./persons1"
+373 
+374 # person6 and person7 will be tagged as public and vip.
+375 CREATE LOADING JOB loadPersonPublicVip {
+376   DEFINE filename f;
+377   LOAD f TO VERTEX person VALUES($0, $0, $1) TAGS("public", "vip") BY OR;
+378 }
+379 RUN LOADING JOB loadPersonPublicVip USING f="./persons2"
+380 
+381 # person8 will be tagged as vip which is derived from the file.
+382 CREATE LOADING JOB loadPerson {
+383   DEFINE filename f;
+384   LOAD f TO VERTEX person VALUES($0, $0, $1) TAGS($2) BY OR USING HEADER="true";
+385 }
+386 RUN LOADING JOB loadPerson USING f="./persons3"
+387 ----
+388 
+389 Note that the `TAGS` clause can specify a tag with a string literal (`"vip"`) so every vertex gets the same tag, or with a token reference by position (`$2`) or by name (`$"label"`) from the source file, so each vertex gets a data-dependent tag. If the tag clause refers to a non-existent tag, the loading job will still run, but the data will not be loaded at runtime. The loading job log will report these non-loaded vertices.
+390 
+391 *Example 2*
+392 
+393 We have three post files: `posts1`, `posts2`, and `posts3`.
+394 
+395 [source,gsql]
+396 ----
+397 $ cat posts1
+398 3,cats,2011-02-05 01:02:44
+399 8,cats,2011-02-03 17:05:52
+400 9,cats,2011-02-05 23:12:42
+401 10,cats,2011-02-04 03:02:31
+402 11,cats,2011-02-03 01:02:21
+403 
+404 $ cat posts2
+405 4,coffee,2011-02-07 05:02:51
+406 
+407 $ cat posts3
+408 0,Graphs,2010-01-12 11:22:05
+409 1,tigergraph,2011-03-03 23:02:00
+410 2,query languages,2011-02-03 01:02:42
+411 5,tigergraph,2011-02-06 01:02:02
+412 6,tigergraph,2011-02-05 02:02:05
+413 7,Graphs,2011-02-04 17:02:41
+414 ----
+415 
+416 We create and run the following loading jobs:
+417 
+418 [source,gsql]
+419 ----
+420 USE GRAPH socialNet
+421 
+422 # posts 3, 8, 9, 10, and 11 will be tagged as public.
+423 CREATE LOADING JOB loadPostPublic {
+424   DEFINE filename f;
+425   LOAD f TO VERTEX post VALUES($0, $1, $2) TAGS("public") BY OR ;
+426 }
+427 RUN LOADING JOB loadPostPublic USING f="./posts1"
+428 
+429 # posts 0, 1, 2, 5, 6, and 7 will be tagged as both public and tech.
+430 CREATE LOADING JOB loadPostPublicTech {
+431   DEFINE filename f;
+432   LOAD f TO VERTEX post VALUES($0, $1, $2) TAGS("public", "tech") BY OR;
+433 }
+434 RUN LOADING JOB loadPostPublicTech USING f="./posts3"
+435 
+436 # post 4 will remain untagged.
+437 ----
+438 
+439 === *Set tags implicitly by inserting into a tag-based graph*
+440 
+441 Loading data to a tag-based graph automatically tags each vertex with the tags specified in the graph's definition. For example, when loading to `vipNet`, the `person` vertices will automatically be tagged with `vip`.
+442 
+443 If you load data into a tag-based graph, these vertices are actually being added to the parent base graph. If two tag-based graphs have overlapping views (e.g. if the graph `vipNet2` also includes `person:vip`), then when one adds a vertex via the tag-based graph, the other tag-based graph may also see it.
+444 
+445 [source,gsql]
+446 ----
+447 USE GRAPH vipNet
+448 
+449 CREATE LOADING JOB loadMember {
+450   DEFINE filename f;
+451   // TAGS("vip") BY OR will be applied implicitly
+452   // since vipNet is defined based on person:vip
+453   LOAD f TO VERTEX person VALUES($0, $0, $1);
+454 }
+455 RUN LOADING JOB loadMember USING f="./persons3"
+456 ----
+457 
+458 [NOTE]
+459 ====
+460 
+461 * *Portability and Reusability*: The same loading job works for `socialNet` or any graph derived from `socialNet` which contains `person`. The difference is in the effect: running it with `vipNet` will apply the `vip` tag. Running it with a different tag-based graph would apply different tags. _Users of a given tag-based graph automatically insert and query data for that tag-based graph._
+462 * *Tagging Shared Data*: The default behavior of GSQL loading is upsert: if you attempt to *insert* a vertex or edge which already exists (e.g., uses an existing ID), you will instead *update* the existing element with the new attribute values. If the attribute is a list or set, the new values will be added to the existing list/set.  This applies to tags. If you attempt to load an existing vertex, the new tag(s) will be added to any existing tags. _Loading a vertex that already exists extends the tag set with the guidance of the tag-graph schema._
+463 ====
+464 
+465 == Query a Tag-based Graph
+466 
+467 The graph `vipNet` only includes vertices with the tag `vip`. We can verify this by running a simple query to return all person vertices in `vipNet`:
+468 
+469 [source,gsql]
+470 ----
+471 USE GRAPH vipNet
+472 
+473 CREATE QUERY findAll() {
+474   seed = {person.*};
+475   result =
+476     SELECT v
+477     FROM seed:v
+478     ORDER BY v.id;
+479 
+480   PRINT result;
+481 }
+482 INSTALL QUERY findAll
+483 RUN QUERY findAll()
+484 ----
+485 
+486 The output of the query would be:
+487 
+488 [source,gsql]
+489 ----
+490 {
+491   "error": false,
+492   "message": "",
+493   "version": {
+494     "schema": 2,
+495     "edition": "enterprise",
+496     "api": "v2"
+497   },
+498   "results": [{"res": [
+499     {
+500       "v_id": "person6",
+501       "attributes": {
+502         "gender": "Male",
+503         "id": "person6"
+504       },
+505       "v_type": "person"
+506     },
+507     {
+508       "v_id": "person7",
+509       "attributes": {
+510         "gender": "Male",
+511         "id": "person7"
+512       },
+513       "v_type": "person"
+514     },
+515     {
+516       "v_id": "person8",
+517       "attributes": {
+518         "gender": "Male",
+519         "id": "person8"
+520       },
+521       "v_type": "person"
+522     }
+523   ]}]
+524 }
+525 ----
+526 
+527 == Access Control
+528 
+529 Users with global `WRITE_SCHEMA` and `ACCESS_TAG` privileges can create, modify and drop tags, as well as create tag-based graphs for all graphs.
+530 
+531 [discrete]
+532 ==== On the base graph
+533 
+534 Users with roles on the base graph that have the `ACCESS_TAG` privilege (e.g.`admin` and `designer` roles) can create/drop tags, and tag vertices. Users that have both the `ACCESS_TAG` privilege and `WRITE_SCHEMA` privilege (e.g. `admin` and `designer` roles) can create/drop tag-based graphs of the base graph.
+535 
+536 Users with roles that don't have the `ACCESS_TAG` privilege on the base graph are able to access the base graph as their roles allow, but they do not have access to the tags on the base graph. They cannot see whether any vertex type on the graph is taggable or if there are tag-based graphs of the base graph.
+537 
+538 Users with roles on the tag-based graphs of the base graph cannot access the base graph if they don't have a role with privileges for the base graph.
+539 
+540 [discrete]
+541 ==== On tag-based graphs
+542 
+543 When a new tag-based graph is created, users with `admin` or `designer` roles will inherit their base graph role on the tag-based graph. Additionally, the creator of the tag-based graph becomes an admin of the tag-based graph.
+544 
+545 Users who are given roles on a tag-based graph have the privileges on the tag-based graph that correspond to their roles, except they are not allowed to edit the tag-based graph's graph schema.
+546 
+547 == Sample Use Cases
+548 
+549 [discrete]
+550 ==== *Scenario I*
+551 
+552 *Problem*
+553 
+554 A user with `admin` role on a graph wants to grant a group of users access to a selective set of vertices.
+555 
+556 *Solution*
+557 
+558 The base graph admin can do the following security setup.
+559 
+560 . *Define a tag*. In a schema change job, <<_define_a_tag>> `T` for this application.
+561 . *Mark vertex types as taggable*. Identify the vertex types you want to give selective access for, and xref:vlac.adoc#_mark_vertex_types_as_taggable[mark those vertex types as taggable] in a schema change job.
+562 . *Define a tag-based graph*. xref:vlac.adoc#_create_a_tag_based_graph[Define a tag-based graph] `B` with the taggable vertex types, with `T` as their tag expression.
+563 . *Tag vertices*. Write a DML query on the base graph and use the tag functions in the query to xref:vlac.adoc#_add_tags_on_existing_data[tag the vertices] you want to include in the tag-based graph, and run the query.
+564 . *Grant users permission to the tag-based graph*. On the tag-based graph B, grant roles that have the appropriate privileges for graph `B` to the target users.
+565 
+566 [discrete]
+567 ==== *Scenario II*
+568 
+569 *Problem*
+570 
+571 You have a source file containing class annotations (tags) on vertex data. You want to grant users access to the vertices that have the annotation `T1`. In the future, you also want the ability to give other users access to vertices based on the vertex class.
+572 
+573 *Solution*
+574 
+575 The base graph `admin` user can do the following setup.
+576 
+577 . *Define tags*. xref:vlac.adoc#_define_a_tag[Declare tags] `T1, T2, … Tn` for all the classes in your source file in a schema change job.
+578 . *Mark vertex types as taggable*. Identify the vertex types of the vertices in your source file that have class annotations, and link:#_mark_vertex_types_as_taggable[mark those vertex types as taggable] in a schema change job.
+579 . *Define a tag-based graph*. xref:vlac.adoc#_create_a_tag_based_graph[Define a tag-based graph] `B` with `T1` as the tag expression.
+580 . *Explicitly tag vertices during data loading*. Write a base graph loading job, and in the loading job, use a `TAGS() BY` clause to xref:vlac.adoc#_set_tags_explicitly_with_tags_clause[explicitly add tags] to the ingested vertices.
+581 . *Grant roles on the tag-based graph*. On the tag-based graph `B`, grant roles that have the appropriate privileges for the graph `B` to target users.
+582 
+583 [discrete]
+584 ==== *Scenario III*
+585 
+586 *Problem*
+587 
+588 An `admin` user on a graph wants to give a group of users read/write access for a specific class of vertices. The users would be able to insert new vertices into the graph and query the data, and all the data they insert into the graph are tagged as the same class.
+589 
+590 *Solution*
+591 
+592 The base graph admin can do the following setup.
+593 
+594 * *Define a tag*. xref:vlac.adoc#_define_a_tag[Declare a tag] `T` for this application in a schema change job.
+595 * *Mark vertex types as taggable*. Identify the vertex types to give selective access to, and xref:vlac.adoc#_mark_vertex_types_as_taggable[mark the relevant vertex types as taggable] in a schema change job.
+596 * *Define a tag-based graph*. link:#_create_a_tag_based_graph[Define a tag-based graph] `B` with `T` as the tag expression.
+597 * *Grant roles on the tag-based graph*. On the tag-based graph, grant roles with the appropriate privileges to target users.
+598 
+599 These group users operate (including delete/update/insert) on graph `B` as if it is a normal graph. They can ingest new data, as well as operate on those vertices from the base graph that have the tag `T`.

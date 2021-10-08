@@ -1,43 +1,43 @@
-= The GSQL Shell
-
-The GSQL shell is a fully functional Java environment for interacting with the TigerGraph database. 
-It is one of the primary ways to interact with the TigerGraph database and is included in a standard TigerGraph installation. 
-
-== Launch the shell
-As the TigerGraph Linux user, type `gsql` into the bash terminal to start a GSQL shell session:
-
-[source,bash]
-----
-$ gsql
-----
-
-If authentication is enabled, you will need to provide credentials in order to launch the shell. 
-
-== Run a GSQL script
-You don't always need to enter the interactive shell in order to run a GSQL command. To run a GSQL command non-interactively, run the command `gsql` followed by the GSQL commands you want to run in quotes:
-
-[source,bash]
-----
-$ gsql 'ls'
-----
-
-== Change scope
-In the GSQL shell, you can run commands on a global scope or on a local scope. 
-When you start a GSQL session, you are in the global scope.
-To change to the local scope of a graph, run the `USE GRAPH` command.
-
-[source,GSQL]
-----
-GSQL > USE GRAPH social
-Using graph 'social'
-----
-
-To switch back to the global scope, run `USE GLOBAL`. 
-
-[source,GSQL]
-----
-GSQL > USE GLOBAL
-----
-
-Operating on different scopes will require different privileges. 
-For more information, see Roles and Privileges. 
+1 = The GSQL Shell
+2 
+3 The GSQL shell is a fully functional Java environment for interacting with the TigerGraph database. 
+4 It is one of the primary ways to interact with the TigerGraph database and is included in a standard TigerGraph installation. 
+5 
+6 == Launch the shell
+7 As the TigerGraph Linux user, type `gsql` into the bash terminal to start a GSQL shell session:
+8 
+9 [source,bash]
+10 ----
+11 $ gsql
+12 ----
+13 
+14 If authentication is enabled, you will need to provide credentials in order to launch the shell. 
+15 
+16 == Run a GSQL script
+17 You don't always need to enter the interactive shell in order to run a GSQL command. To run a GSQL command non-interactively, run the command `gsql` followed by the GSQL commands you want to run in quotes:
+18 
+19 [source,bash]
+20 ----
+21 $ gsql 'ls'
+22 ----
+23 
+24 == Change scope
+25 In the GSQL shell, you can run commands on a global scope or on a local scope. 
+26 When you start a GSQL session, you are in the global scope.
+27 To change to the local scope of a graph, run the `USE GRAPH` command.
+28 
+29 [source,GSQL]
+30 ----
+31 GSQL > USE GRAPH social
+32 Using graph 'social'
+33 ----
+34 
+35 To switch back to the global scope, run `USE GLOBAL`. 
+36 
+37 [source,GSQL]
+38 ----
+39 GSQL > USE GLOBAL
+40 ----
+41 
+42 Operating on different scopes will require different privileges. 
+43 For more information, see Roles and Privileges. 

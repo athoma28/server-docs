@@ -1,113 +1,113 @@
-= List of Privileges
-
-This page provides a complete list of privileges in TigerGraph's Role-based Access Control system.
-
-* Any privilege marked "`on global only`" can only be granted to a global role. It cannot be granted to a local role (See xref:user-access:roles-and-privileges.adoc#_global_vs_local_privileges[Global role vs local role]).
-* The command `IMPORT GRAPH <gName>` needs multiple privileges, .e.g `WRITE_SCHEMA`, `WRITE_LOADING_JOB`, `WRITE_QUERY` and so on.
-* To run the command `CREATE SECRET` on a graph, the user must have at least one of the access database privileges: `READ_DATA`, `WRITE_DATA` and `EXECUTE_LOADINGJOB` on that graph. Thus the built-in `queryreader` role and above can create secrets on a graph, but the observer role cannot.
-
-== Table of Privileges
-[width="100%",cols="22%,63%,15%",options="header",]
-|===
-|*Privilege Name* |*Commands Associated* |*Global Only*
-|`READ_SCHEMA`
-a|* `ls`
-  * `show vertex <vName>`
-  * `show edge <eName>`
-  * `show graph <gName>`
-  * `show job (<schema_changeJobName>`
-|No
-
-|`WRITE_SCHEMA`
-a|* `create schema_change job <scjName>`
-* `run schema_change job <scjName>`
-* `drop schema_change job <scjName>`
-* `create vertex <vName>`
-* `drop vertex <vName>`
-* `create edge <eName>`
-* `drop edge <eName>`
-* `create graph <gName>`
-* `create global schema_change job <gscjName>`
-* `run global schema_change job <gscjName>`
-* `drop global schema_change job <gscjName>`
-|No
-
-|`READ_LOADINGJOB`
-a|* `show job <loadingJobName>`
-* `show data_source <dsName>`
-|No
-
-|`EXECUTE_LOADINGJOB`
-a|* `run loading job <ljName>`
-* `show loading status <jobId>`
-* `abort loading job <ljName>`
-* `resume loading job <ljName>`
-|No
-
-|`WRITE_LOADINGJOB`
-a|* `create loading job <ljName>`
-* `drop loading job <ljName>` |No
-
-|`READ_QUERY` |`show query <qName>` |No
-
-|`WRITE_QUERY`
-a|* `create query <qName>`
-* `install query <qName>`
-* `drop query <qName>`
-|No
-
-|`READ_DATA` |`run Read_Only_Query <qName>` |No
-
-|`WRITE_DATA`
-a|* `run Query_With_Update <qName>`
-* `(including create, delete, update in its own or any sub-query)`
-|No
-
-|`WRITE_DATASOURCE`
-a|* `create data_source <dsName>`
-* `grant data_source <dsName>`
-* `revoke data_source <dsName>`
-* `drop data_source <dsName>`
-|No
-
-|`READ_ROLE` a|* `show role`
-* `show privilege on role <rName>` |No
-
-|`WRITE_ROLE`
-a|* `create role <rName>`
-* `grant role <rName>`
-* `revoke role <rName>`
-* `drop role <rName>`
-* `grant privilege <pName> on graph <gName> to <rName>`
-* `revoke privilege <pName> on graph <gName> from <rName>`
-|No
-
-|`READ_USER`
-a|* `show user`
-* `show privilege on user <uName>`
-* `show secret`
-|No
-
-|`WRITE_USER`
-a|* `create user <uName>`
-* `drop user <uName>`
-* `alter password`
-|Yes
-
-|`READ_PROXYGROUP` |`show group` |No
-
-|`WRITE_PROXYGROUP`
-a|* `create group <pgName> proxy <rule>`
-* `drop group <pgName>`
-|Yes
-
-|`READ_FILE` |`get <fileName> to <path-to-file>` |Yes
-
-|`WRITE_FILE` |`put <fileName> from <path-to-file>` |Yes
-
-|`DROP_GRAPH` |`drop graph <gName>` |Yes
-
-|`EXPORT_GRAPH` |`export graph <gName>` |Yes
-
-|`CLEAR_GRAPHSTORE` |`clear graph store` |
-|===
+1 = List of Privileges
+2 
+3 This page provides a complete list of privileges in TigerGraph's Role-based Access Control system.
+4 
+5 * Any privilege marked "`on global only`" can only be granted to a global role. It cannot be granted to a local role (See xref:user-access:roles-and-privileges.adoc#_global_vs_local_privileges[Global role vs local role]).
+6 * The command `IMPORT GRAPH <gName>` needs multiple privileges, .e.g `WRITE_SCHEMA`, `WRITE_LOADING_JOB`, `WRITE_QUERY` and so on.
+7 * To run the command `CREATE SECRET` on a graph, the user must have at least one of the access database privileges: `READ_DATA`, `WRITE_DATA` and `EXECUTE_LOADINGJOB` on that graph. Thus the built-in `queryreader` role and above can create secrets on a graph, but the observer role cannot.
+8 
+9 == Table of Privileges
+10 [width="100%",cols="22%,63%,15%",options="header",]
+11 |===
+12 |*Privilege Name* |*Commands Associated* |*Global Only*
+13 |`READ_SCHEMA`
+14 a|* `ls`
+15   * `show vertex <vName>`
+16   * `show edge <eName>`
+17   * `show graph <gName>`
+18   * `show job (<schema_changeJobName>`
+19 |No
+20 
+21 |`WRITE_SCHEMA`
+22 a|* `create schema_change job <scjName>`
+23 * `run schema_change job <scjName>`
+24 * `drop schema_change job <scjName>`
+25 * `create vertex <vName>`
+26 * `drop vertex <vName>`
+27 * `create edge <eName>`
+28 * `drop edge <eName>`
+29 * `create graph <gName>`
+30 * `create global schema_change job <gscjName>`
+31 * `run global schema_change job <gscjName>`
+32 * `drop global schema_change job <gscjName>`
+33 |No
+34 
+35 |`READ_LOADINGJOB`
+36 a|* `show job <loadingJobName>`
+37 * `show data_source <dsName>`
+38 |No
+39 
+40 |`EXECUTE_LOADINGJOB`
+41 a|* `run loading job <ljName>`
+42 * `show loading status <jobId>`
+43 * `abort loading job <ljName>`
+44 * `resume loading job <ljName>`
+45 |No
+46 
+47 |`WRITE_LOADINGJOB`
+48 a|* `create loading job <ljName>`
+49 * `drop loading job <ljName>` |No
+50 
+51 |`READ_QUERY` |`show query <qName>` |No
+52 
+53 |`WRITE_QUERY`
+54 a|* `create query <qName>`
+55 * `install query <qName>`
+56 * `drop query <qName>`
+57 |No
+58 
+59 |`READ_DATA` |`run Read_Only_Query <qName>` |No
+60 
+61 |`WRITE_DATA`
+62 a|* `run Query_With_Update <qName>`
+63 * `(including create, delete, update in its own or any sub-query)`
+64 |No
+65 
+66 |`WRITE_DATASOURCE`
+67 a|* `create data_source <dsName>`
+68 * `grant data_source <dsName>`
+69 * `revoke data_source <dsName>`
+70 * `drop data_source <dsName>`
+71 |No
+72 
+73 |`READ_ROLE` a|* `show role`
+74 * `show privilege on role <rName>` |No
+75 
+76 |`WRITE_ROLE`
+77 a|* `create role <rName>`
+78 * `grant role <rName>`
+79 * `revoke role <rName>`
+80 * `drop role <rName>`
+81 * `grant privilege <pName> on graph <gName> to <rName>`
+82 * `revoke privilege <pName> on graph <gName> from <rName>`
+83 |No
+84 
+85 |`READ_USER`
+86 a|* `show user`
+87 * `show privilege on user <uName>`
+88 * `show secret`
+89 |No
+90 
+91 |`WRITE_USER`
+92 a|* `create user <uName>`
+93 * `drop user <uName>`
+94 * `alter password`
+95 |Yes
+96 
+97 |`READ_PROXYGROUP` |`show group` |No
+98 
+99 |`WRITE_PROXYGROUP`
+100 a|* `create group <pgName> proxy <rule>`
+101 * `drop group <pgName>`
+102 |Yes
+103 
+104 |`READ_FILE` |`get <fileName> to <path-to-file>` |Yes
+105 
+106 |`WRITE_FILE` |`put <fileName> from <path-to-file>` |Yes
+107 
+108 |`DROP_GRAPH` |`drop graph <gName>` |Yes
+109 
+110 |`EXPORT_GRAPH` |`export graph <gName>` |Yes
+111 
+112 |`CLEAR_GRAPHSTORE` |`clear graph store` |
+113 |===

@@ -1,355 +1,355 @@
-= Built-in Endpoints JSON Catalog
-
-The request
-
-[source,bash]
-----
-curl -X GET "http://server_ip:9000/endpoints?builtin=true"
-----
-
-generates the following output, appropriately 400 lines long when formatted. In addition to listing each endpoint, the JSON output also lists all the required and optional parameters for each endpoint.  In turn, each parameter is described by some or all of these attributes:
-
-* default
-* max_count
-* min_count
-* type
-* max_length
-* is_id
-* id_type
-
-While this information alone is not sufficient for a full understanding of each endpoint, the descriptive names of parameters and the attribute values go a long way towards this goal.
-
-[source,bash]
-----
-{
-   "DELETE /graph/{graph_name}/delete_by_type/vertices/{vertex_type}" : {
-      "parameters" : {
-         "ack" : {
-            "default" : "all",
-            "max_count" : 1,
-            "min_count" : 1,
-            "options" : [ "all", "none" ],
-            "type" : "STRING"
-         },
-         "permanent" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 1,
-            "type" : "BOOL"
-         },
-         "vertex_type" : {
-            "type" : "TYPENAME"
-         }
-      }
-   },
-   "DELETE /graph/{graph_name}/edges/{source_vertex_type}/{source_vertex_id}/{edge_type}/{target_vertex_type}/{target_vertex_id}" : {
-      "parameters" : {
-         "edge_type" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "filter" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "limit" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT64"
-         },
-         "not_wildcard" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         },
-         "permanent" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 1,
-            "type" : "BOOL"
-         },
-         "select" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "sort" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "source_vertex_id" : {
-            "id_type" : "$source_vertex_type",
-            "is_id" : true,
-            "max_count" : 1,
-            "max_length" : 256,
-            "min_count" : 1,
-            "type" : "STRING"
-         },
-         "source_vertex_type" : {
-            "max_count" : 1,
-            "min_count" : 1,
-            "type" : "TYPENAME"
-         },
-         "target_vertex_id" : {
-            "id_type" : "$target_vertex_type",
-            "is_id" : true,
-            "max_count" : 1,
-            "max_length" : 256,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "target_vertex_type" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "TYPENAME"
-         },
-         "timeout" : {
-            "default" : "0",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT32"
-         }
-      }
-   },
-   "DELETE /graph/{graph_name}/vertices/{vertex_type}/{vertex_id}" : {
-      "parameters" : {
-         "filter" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "limit" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT64"
-         },
-         "permanent" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 1,
-            "type" : "BOOL"
-         },
-         "sort" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "timeout" : {
-            "default" : "0",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT32"
-         },
-         "vertex_id" : {
-            "id_type" : "$vertex_type",
-            "is_id" : true,
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "vertex_type" : {
-            "type" : "TYPENAME"
-         }
-      }
-   },
-   "GET /echo" : {
-      "parameters" : {
-         "sleep" : {
-            "default" : "0",
-            "type" : "INT32"
-         }
-      }
-   },
-   "GET /endpoints" : {
-      "parameters" : {
-         "builtin" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         },
-         "dynamic" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         },
-         "static" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         }
-      }
-   },
-  "GET /graph/{graph_name}/edges/{source_vertex_type}/{source_vertex_id}/{edge_type}/{target_vertex_type}/{target_vertex_id}" : {
-      "parameters" : {
-         "count_only" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         },
-         "edge_type" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "filter" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "limit" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT64"
-         },
-         "not_wildcard" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         },
-         "select" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "sort" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "source_vertex_id" : {
-            "id_type" : "$source_vertex_type",
-            "is_id" : true,
-            "max_count" : 1,
-            "max_length" : 256,
-            "min_count" : 1,
-            "type" : "STRING"
-         },
-         "source_vertex_type" : {
-            "max_count" : 1,
-            "min_count" : 1,
-            "type" : "TYPENAME"
-         },
-         "target_vertex_id" : {
-            "id_type" : "$target_vertex_type",
-            "is_id" : true,
-            "max_count" : 1,
-            "max_length" : 256,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "target_vertex_type" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "TYPENAME"
-         },
-         "timeout" : {
-            "default" : "0",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT32"
-         }
-      }
-   },
-   "GET /graph/{graph_name}/vertices/{vertex_type}/{vertex_id}" : {
-      "parameters" : {
-         "count_only" : {
-            "default" : "false",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "BOOL"
-         },
-         "filter" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "limit" : {
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT64"
-         },
-         "select" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "sort" : {
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "timeout" : {
-            "default" : "0",
-            "max_count" : 1,
-            "min_count" : 0,
-            "type" : "UINT32"
-         },
-         "vertex_id" : {
-            "id_type" : "$vertex_type",
-            "is_id" : true,
-            "max_count" : 1,
-            "max_length" : 2560,
-            "min_count" : 0,
-            "type" : "STRING"
-         },
-         "vertex_type" : {
-            "type" : "TYPENAME"
-         }
-      }
-   },
-   "GET /statistics/{graph_name}" : {
-      "parameters" : {
-         "seconds" : {
-            "default" : "10",
-            "type" : "UINT32"
-         },
-         "segments" : {
-            "default" : "10",
-            "max" : "100",
-            "min" : "1",
-            "type" : "UINT32"
-         }
-      }
-   },
-   "GET /version" : null,
-   "POST /builtins" : null,
-   "POST /echo" : {
-      "parameters" : {
-         "sleep" : {
-            "default" : "0",
-            "type" : "INT32"
-         }
-      }
-   },
-   "POST /graph/{graph_name}" : {
-      "parameters" : {
-         "ack" : {
-            "default" : "all",
-            "max_count" : 1,
-            "min_count" : 1,
-            "options" : [ "all", "none" ],
-            "type" : "STRING"
-         }
-      }
-   }
-}
-----
+1 = Built-in Endpoints JSON Catalog
+2 
+3 The request
+4 
+5 [source,bash]
+6 ----
+7 curl -X GET "http://server_ip:9000/endpoints?builtin=true"
+8 ----
+9 
+10 generates the following output, appropriately 400 lines long when formatted. In addition to listing each endpoint, the JSON output also lists all the required and optional parameters for each endpoint.  In turn, each parameter is described by some or all of these attributes:
+11 
+12 * default
+13 * max_count
+14 * min_count
+15 * type
+16 * max_length
+17 * is_id
+18 * id_type
+19 
+20 While this information alone is not sufficient for a full understanding of each endpoint, the descriptive names of parameters and the attribute values go a long way towards this goal.
+21 
+22 [source,bash]
+23 ----
+24 {
+25    "DELETE /graph/{graph_name}/delete_by_type/vertices/{vertex_type}" : {
+26       "parameters" : {
+27          "ack" : {
+28             "default" : "all",
+29             "max_count" : 1,
+30             "min_count" : 1,
+31             "options" : [ "all", "none" ],
+32             "type" : "STRING"
+33          },
+34          "permanent" : {
+35             "default" : "false",
+36             "max_count" : 1,
+37             "min_count" : 1,
+38             "type" : "BOOL"
+39          },
+40          "vertex_type" : {
+41             "type" : "TYPENAME"
+42          }
+43       }
+44    },
+45    "DELETE /graph/{graph_name}/edges/{source_vertex_type}/{source_vertex_id}/{edge_type}/{target_vertex_type}/{target_vertex_id}" : {
+46       "parameters" : {
+47          "edge_type" : {
+48             "max_count" : 1,
+49             "min_count" : 0,
+50             "type" : "STRING"
+51          },
+52          "filter" : {
+53             "max_count" : 1,
+54             "max_length" : 2560,
+55             "min_count" : 0,
+56             "type" : "STRING"
+57          },
+58          "limit" : {
+59             "max_count" : 1,
+60             "min_count" : 0,
+61             "type" : "UINT64"
+62          },
+63          "not_wildcard" : {
+64             "max_count" : 1,
+65             "min_count" : 0,
+66             "type" : "BOOL"
+67          },
+68          "permanent" : {
+69             "default" : "false",
+70             "max_count" : 1,
+71             "min_count" : 1,
+72             "type" : "BOOL"
+73          },
+74          "select" : {
+75             "max_count" : 1,
+76             "max_length" : 2560,
+77             "min_count" : 0,
+78             "type" : "STRING"
+79          },
+80          "sort" : {
+81             "max_count" : 1,
+82             "max_length" : 2560,
+83             "min_count" : 0,
+84             "type" : "STRING"
+85          },
+86          "source_vertex_id" : {
+87             "id_type" : "$source_vertex_type",
+88             "is_id" : true,
+89             "max_count" : 1,
+90             "max_length" : 256,
+91             "min_count" : 1,
+92             "type" : "STRING"
+93          },
+94          "source_vertex_type" : {
+95             "max_count" : 1,
+96             "min_count" : 1,
+97             "type" : "TYPENAME"
+98          },
+99          "target_vertex_id" : {
+100             "id_type" : "$target_vertex_type",
+101             "is_id" : true,
+102             "max_count" : 1,
+103             "max_length" : 256,
+104             "min_count" : 0,
+105             "type" : "STRING"
+106          },
+107          "target_vertex_type" : {
+108             "max_count" : 1,
+109             "min_count" : 0,
+110             "type" : "TYPENAME"
+111          },
+112          "timeout" : {
+113             "default" : "0",
+114             "max_count" : 1,
+115             "min_count" : 0,
+116             "type" : "UINT32"
+117          }
+118       }
+119    },
+120    "DELETE /graph/{graph_name}/vertices/{vertex_type}/{vertex_id}" : {
+121       "parameters" : {
+122          "filter" : {
+123             "max_count" : 1,
+124             "max_length" : 2560,
+125             "min_count" : 0,
+126             "type" : "STRING"
+127          },
+128          "limit" : {
+129             "max_count" : 1,
+130             "min_count" : 0,
+131             "type" : "UINT64"
+132          },
+133          "permanent" : {
+134             "default" : "false",
+135             "max_count" : 1,
+136             "min_count" : 1,
+137             "type" : "BOOL"
+138          },
+139          "sort" : {
+140             "max_count" : 1,
+141             "max_length" : 2560,
+142             "min_count" : 0,
+143             "type" : "STRING"
+144          },
+145          "timeout" : {
+146             "default" : "0",
+147             "max_count" : 1,
+148             "min_count" : 0,
+149             "type" : "UINT32"
+150          },
+151          "vertex_id" : {
+152             "id_type" : "$vertex_type",
+153             "is_id" : true,
+154             "max_count" : 1,
+155             "max_length" : 2560,
+156             "min_count" : 0,
+157             "type" : "STRING"
+158          },
+159          "vertex_type" : {
+160             "type" : "TYPENAME"
+161          }
+162       }
+163    },
+164    "GET /echo" : {
+165       "parameters" : {
+166          "sleep" : {
+167             "default" : "0",
+168             "type" : "INT32"
+169          }
+170       }
+171    },
+172    "GET /endpoints" : {
+173       "parameters" : {
+174          "builtin" : {
+175             "default" : "false",
+176             "max_count" : 1,
+177             "min_count" : 0,
+178             "type" : "BOOL"
+179          },
+180          "dynamic" : {
+181             "default" : "false",
+182             "max_count" : 1,
+183             "min_count" : 0,
+184             "type" : "BOOL"
+185          },
+186          "static" : {
+187             "default" : "false",
+188             "max_count" : 1,
+189             "min_count" : 0,
+190             "type" : "BOOL"
+191          }
+192       }
+193    },
+194   "GET /graph/{graph_name}/edges/{source_vertex_type}/{source_vertex_id}/{edge_type}/{target_vertex_type}/{target_vertex_id}" : {
+195       "parameters" : {
+196          "count_only" : {
+197             "default" : "false",
+198             "max_count" : 1,
+199             "min_count" : 0,
+200             "type" : "BOOL"
+201          },
+202          "edge_type" : {
+203             "max_count" : 1,
+204             "min_count" : 0,
+205             "type" : "STRING"
+206          },
+207          "filter" : {
+208             "max_count" : 1,
+209             "max_length" : 2560,
+210             "min_count" : 0,
+211             "type" : "STRING"
+212          },
+213          "limit" : {
+214             "max_count" : 1,
+215             "min_count" : 0,
+216             "type" : "UINT64"
+217          },
+218          "not_wildcard" : {
+219             "max_count" : 1,
+220             "min_count" : 0,
+221             "type" : "BOOL"
+222          },
+223          "select" : {
+224             "max_count" : 1,
+225             "max_length" : 2560,
+226             "min_count" : 0,
+227             "type" : "STRING"
+228          },
+229          "sort" : {
+230             "max_count" : 1,
+231             "max_length" : 2560,
+232             "min_count" : 0,
+233             "type" : "STRING"
+234          },
+235          "source_vertex_id" : {
+236             "id_type" : "$source_vertex_type",
+237             "is_id" : true,
+238             "max_count" : 1,
+239             "max_length" : 256,
+240             "min_count" : 1,
+241             "type" : "STRING"
+242          },
+243          "source_vertex_type" : {
+244             "max_count" : 1,
+245             "min_count" : 1,
+246             "type" : "TYPENAME"
+247          },
+248          "target_vertex_id" : {
+249             "id_type" : "$target_vertex_type",
+250             "is_id" : true,
+251             "max_count" : 1,
+252             "max_length" : 256,
+253             "min_count" : 0,
+254             "type" : "STRING"
+255          },
+256          "target_vertex_type" : {
+257             "max_count" : 1,
+258             "min_count" : 0,
+259             "type" : "TYPENAME"
+260          },
+261          "timeout" : {
+262             "default" : "0",
+263             "max_count" : 1,
+264             "min_count" : 0,
+265             "type" : "UINT32"
+266          }
+267       }
+268    },
+269    "GET /graph/{graph_name}/vertices/{vertex_type}/{vertex_id}" : {
+270       "parameters" : {
+271          "count_only" : {
+272             "default" : "false",
+273             "max_count" : 1,
+274             "min_count" : 0,
+275             "type" : "BOOL"
+276          },
+277          "filter" : {
+278             "max_count" : 1,
+279             "max_length" : 2560,
+280             "min_count" : 0,
+281             "type" : "STRING"
+282          },
+283          "limit" : {
+284             "max_count" : 1,
+285             "min_count" : 0,
+286             "type" : "UINT64"
+287          },
+288          "select" : {
+289             "max_count" : 1,
+290             "max_length" : 2560,
+291             "min_count" : 0,
+292             "type" : "STRING"
+293          },
+294          "sort" : {
+295             "max_count" : 1,
+296             "max_length" : 2560,
+297             "min_count" : 0,
+298             "type" : "STRING"
+299          },
+300          "timeout" : {
+301             "default" : "0",
+302             "max_count" : 1,
+303             "min_count" : 0,
+304             "type" : "UINT32"
+305          },
+306          "vertex_id" : {
+307             "id_type" : "$vertex_type",
+308             "is_id" : true,
+309             "max_count" : 1,
+310             "max_length" : 2560,
+311             "min_count" : 0,
+312             "type" : "STRING"
+313          },
+314          "vertex_type" : {
+315             "type" : "TYPENAME"
+316          }
+317       }
+318    },
+319    "GET /statistics/{graph_name}" : {
+320       "parameters" : {
+321          "seconds" : {
+322             "default" : "10",
+323             "type" : "UINT32"
+324          },
+325          "segments" : {
+326             "default" : "10",
+327             "max" : "100",
+328             "min" : "1",
+329             "type" : "UINT32"
+330          }
+331       }
+332    },
+333    "GET /version" : null,
+334    "POST /builtins" : null,
+335    "POST /echo" : {
+336       "parameters" : {
+337          "sleep" : {
+338             "default" : "0",
+339             "type" : "INT32"
+340          }
+341       }
+342    },
+343    "POST /graph/{graph_name}" : {
+344       "parameters" : {
+345          "ack" : {
+346             "default" : "all",
+347             "max_count" : 1,
+348             "min_count" : 1,
+349             "options" : [ "all", "none" ],
+350             "type" : "STRING"
+351          }
+352       }
+353    }
+354 }
+355 ----

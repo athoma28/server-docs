@@ -1,396 +1,396 @@
-= Error codes
-:description: The reference page for status codes on the TigerGraph platform.
-:pp: {plus}{plus}
-
-This page documents the _status codes_ and _exit codes_ on the TigerGraph platform. Each status code follows the format: `<component>-<code>` , while exit codes are numeric values between 0 - 255.
-
-If the system was handling a user request, the status code and message will be in the JSON response (see xref:3.2@gsql-ref:querying:query-operations.adoc#_gsql_query_output_format[GSQL Query Output Format] ). For internal errors, the error information may be in a log file.
-
-The GSQL Client will exit with a non-zero code if there's an error while handling a user request. To view the exit code of the GSQL client, run the command `echo $?` and the exit code of the most recent command will be printed to the terminal.
-
-== Return codes
-
-=== REST
-
-This section covers return codes from the REST{pp} server.
-
-==== 0000 - 0999
-
-Codes in this range are success codes. When the conditions for multiple codes are true, the lowest code is returned.
-
-|===
-| Code | Description
-
-| `REST-0000`
-| General successful completion
-
-| `REST-0001`
-| Successful vertex insertion or update
-
-| `REST-0002`
-| Successful edge insertion or update
-
-| `REST-0003`
-| Successful vertex and edge insertion or update
-
-| `REST-0004`
-| Empty response
-|===
-
-==== 1000 - 1999
-
-RESTPP endpoint errors.
-
-|===
-| Code | Description
-
-| `REST-1000`
-| The endpoint does not exist.
-
-| `REST-1003`
-| The query could not run because there is no graph schema.
-
-| `REST-1004`
-| The graph cannot be found.
-|===
-
-==== 2000 - 2999
-
-Payload errors.
-
-|===
-| Code | Description
-
-| `REST-2001`
-| The JSON payload is invalid.
-
-| `REST-2004`
-| The payload contains vertices of an invalid type.
-
-| `REST-2005`
-| The payload contains edges of an invalid type.
-|===
-
-==== 3000 - 3999
-
-RESTPP general errors.
-
-|===
-| Code | Description
-
-| `REST-3000`
-| The query timed out from the timeout limit set by the request header.
-
-| `REST-3001`
-| The query timed out from the timeout limit set by the built-in endpoint.
-
-| `REST-3002`
-| The query timed out from the timeout limit set by the `RESTPP.Factory.DefaultQueryTimeoutSec` parameter.
-|===
-
-==== 10000+
-
-Other RESTPP errors.
-
-|===
-| Code | Description
-
-| `REST-10001`
-| The endpoint has been removed.
-
-| `REST-10004`
-| There was an exception when starting a scheduler.
-
-| `REST-10005`
-| There was an exception when processing results.
-
-| `REST-10015`
-| The request is in an orphan state due to malfunction in user-defined schedulers.
-
-| `REST-10016`
-| Access denied due to an invalid token.
-
-| `REST-12000`
-| RESTPP failed to get a response from GSE or GPE in time.
-
-| `REST-12001`
-| No running GSE or GPE instance detected.
-
-| `REST-12002`
-| The query was aborted by the user.
-
-| `REST-12003`
-| The query failed due to insufficient disk space.
-|===
-
-=== GSQL
-
-==== 0000 - 0999
-
-Codes in this range are success codes. GSQL will return the smallest code when the conditions are met for multiple codes.
-
-|===
-| Code | Description
-
-| `GSQL-0000`
-| The query is successful.
-
-| `GSQL-0001`
-| Vertices and edges were updated or inserted successfully.
-
-| `GSQL-0002`
-| Vertices were updated or inserted successfully.
-
-| `GSQL-0003`
-| Edges were updated or inserted successfully.
-|===
-
-==== 1000 - 1999
-
-Query parameter errors.
-
-|===
-| Code | Description
-
-| `GSQL-1001`
-| The query contains a parameter with a `NULL` value.
-
-| `GSQL-1002`
-| General parameter error.
-
-| `GSQL-1020`
-| Invalid parameters.
-|===
-
-==== 2000 - 2499
-
-JSON string related errors.
-
-|===
-| Code | Description
-
-| `GSQL-2010`
-| JSON object format error.
-
-| `GSQL-2011`
-| JSON array format error.
-|===
-
-==== 2500 - 2999
-
-Operator errors.
-
-|===
-| Code | Description
-
-| `GSQL-2500`
-| Division by zero error.
-
-| `GSQL-2501`
-| The query contains incorrectly formatted `DATETIME` strings.
-
-| `GSQL-2502`
-| The query contains illegal patterns.
-
-| `GSQL-2503`
-| The query contains invalid operators.
-
-| `GSQL-2601`
-| The parameter provided is of the wrong primitive type.
-
-| `GSQL-2620`
-| The query contains an invalid array index.
-
-| `GSQL-2621`
-| The query contains an out-of-bounds array index.
-|===
-
-==== 3000 - 3999
-
-Dynamic expression errors and expression function errors.
-
-|===
-| Code | Description
-
-| `GSQL-3000`
-| The query references non-existent attributes.
-
-| `GSQL-3001`
-| The query references non-existent vertex types.
-|===
-
-==== 4500 - 4999
-
-Vertex type, edge type, and ID translation errors
-
-|===
-| Code | Description
-
-| `GSQL-4500`
-| The query references a vertex type that does not exist.
-
-| `GSQL-4501`
-| The query references an edge type that does not exist.
-
-| `GSQL-4502`
-| The query references an invalid vertex ID.
-
-| `GSQL-4511`
-| The query contains an invalid vertex attribute.
-
-| `GSQL-4521`
-| The query contains an invalid edge attribute.
-
-| `GSQL-4522`
-| The number of edge attributes is invalid.
-
-| `GSQL-4523`
-| An edge points from an invalid source vertex.
-
-| `GSQL-4524`
-| An edge points to an invalid target vertex.
-
-| `GSQL-4525`
-| An edge has both invalid source and target vertices.
-|===
-
-==== 5000 - 5499
-
-Print errors.
-
-|===
-| Code | Description
-
-| `GSQL-5101`
-| A file referenced in the query cannot be opened.
-
-| `GSQL-5101`
-| A file referenced in the query does not exist.
-
-| `GSQL-5105`
-| GSQL was denied access to a file referenced in the query.
-
-| `GSQL-5111`
-| A file referenced in the query cannot be read.
-|===
-
-==== 6000 - 6499
-
-Errors related to updating the graph.
-
-|===
-| Code | Description
-
-| `GSQL-6000`
-| The query inserts an edge with an unknown vertex.
-
-| `GSQL-6001`
-| Unsupported type of attribute update.
-|===
-
-==== 6500 - 6999
-
-|===
-| Code | Description
-
-| `GSQL-6500`
-| The query was aborted by the user.
-|===
-
-==== 7000 - 7999
-
-Built-in query errors.
-
-|===
-| Code | Description
-
-| `GSQL-7002`
-| The query timed out.
-|===
-
-==== 8000 - 8999
-
-Unexpected exceptions (C{pp}).
-
-|===
-| Code | Description
-
-| `GSQL-8001`
-| Boost library exception
-
-| `GSQL-8002`
-| Runtime exception
-
-| `GSQL-8003`
-| `std` exception
-
-| `GSQL-8999`
-| All other exceptions
-|===
-
-==== 40000+
-
-User-defined exception errors.
-
-=== SYS
-
-This section covers engine-related errors.
-
-|===
-| Code | Description
-
-| `SYS-0001`
-| The engine is not available.
-
-| `SYS-0002`
-| The query was rejected because the memory limit has been reached.
-
-| `SYS-0003`
-| The query is aborted.
-
-| `SYS-0004`
-| The endpoint has been removed.
-|===
-
-== GSQL client exit codes
-
-The GSQL client will exit with non-zero code if there's an error while handling a user request. To check the exit code, run the Linux command `echo $?` and the exit code of the most recent command will be printed in the console.
-
-|===
-| *Exit Code* | *Description*
-
-| 0
-| No error
-
-| 41
-| Login or authentication error. The GSQL will also exit with this code if a graph with the supplied graph name cannot be found.
-
-| 201
-| Invalid argument error
-
-| 202
-| Connection error
-
-| 203
-| Compatibility error
-
-| 204
-| Session timeout
-
-| 211*
-| Syntax error
-
-| 212
-| Runtime error
-
-| 213*
-| No graph in use error
-
-| 255
-| Unknown error
-|===
-
-[NOTE]
-====
-The exit codes marked with a star (*) are only applicable when a GSQL script is given as an argument.
-====
+1 = Error codes
+2 :description: The reference page for status codes on the TigerGraph platform.
+3 :pp: {plus}{plus}
+4 
+5 This page documents the _status codes_ and _exit codes_ on the TigerGraph platform. Each status code follows the format: `<component>-<code>` , while exit codes are numeric values between 0 - 255.
+6 
+7 If the system was handling a user request, the status code and message will be in the JSON response (see xref:3.2@gsql-ref:querying:query-operations.adoc#_gsql_query_output_format[GSQL Query Output Format] ). For internal errors, the error information may be in a log file.
+8 
+9 The GSQL Client will exit with a non-zero code if there's an error while handling a user request. To view the exit code of the GSQL client, run the command `echo $?` and the exit code of the most recent command will be printed to the terminal.
+10 
+11 == Return codes
+12 
+13 === REST
+14 
+15 This section covers return codes from the REST{pp} server.
+16 
+17 ==== 0000 - 0999
+18 
+19 Codes in this range are success codes. When the conditions for multiple codes are true, the lowest code is returned.
+20 
+21 |===
+22 | Code | Description
+23 
+24 | `REST-0000`
+25 | General successful completion
+26 
+27 | `REST-0001`
+28 | Successful vertex insertion or update
+29 
+30 | `REST-0002`
+31 | Successful edge insertion or update
+32 
+33 | `REST-0003`
+34 | Successful vertex and edge insertion or update
+35 
+36 | `REST-0004`
+37 | Empty response
+38 |===
+39 
+40 ==== 1000 - 1999
+41 
+42 RESTPP endpoint errors.
+43 
+44 |===
+45 | Code | Description
+46 
+47 | `REST-1000`
+48 | The endpoint does not exist.
+49 
+50 | `REST-1003`
+51 | The query could not run because there is no graph schema.
+52 
+53 | `REST-1004`
+54 | The graph cannot be found.
+55 |===
+56 
+57 ==== 2000 - 2999
+58 
+59 Payload errors.
+60 
+61 |===
+62 | Code | Description
+63 
+64 | `REST-2001`
+65 | The JSON payload is invalid.
+66 
+67 | `REST-2004`
+68 | The payload contains vertices of an invalid type.
+69 
+70 | `REST-2005`
+71 | The payload contains edges of an invalid type.
+72 |===
+73 
+74 ==== 3000 - 3999
+75 
+76 RESTPP general errors.
+77 
+78 |===
+79 | Code | Description
+80 
+81 | `REST-3000`
+82 | The query timed out from the timeout limit set by the request header.
+83 
+84 | `REST-3001`
+85 | The query timed out from the timeout limit set by the built-in endpoint.
+86 
+87 | `REST-3002`
+88 | The query timed out from the timeout limit set by the `RESTPP.Factory.DefaultQueryTimeoutSec` parameter.
+89 |===
+90 
+91 ==== 10000+
+92 
+93 Other RESTPP errors.
+94 
+95 |===
+96 | Code | Description
+97 
+98 | `REST-10001`
+99 | The endpoint has been removed.
+100 
+101 | `REST-10004`
+102 | There was an exception when starting a scheduler.
+103 
+104 | `REST-10005`
+105 | There was an exception when processing results.
+106 
+107 | `REST-10015`
+108 | The request is in an orphan state due to malfunction in user-defined schedulers.
+109 
+110 | `REST-10016`
+111 | Access denied due to an invalid token.
+112 
+113 | `REST-12000`
+114 | RESTPP failed to get a response from GSE or GPE in time.
+115 
+116 | `REST-12001`
+117 | No running GSE or GPE instance detected.
+118 
+119 | `REST-12002`
+120 | The query was aborted by the user.
+121 
+122 | `REST-12003`
+123 | The query failed due to insufficient disk space.
+124 |===
+125 
+126 === GSQL
+127 
+128 ==== 0000 - 0999
+129 
+130 Codes in this range are success codes. GSQL will return the smallest code when the conditions are met for multiple codes.
+131 
+132 |===
+133 | Code | Description
+134 
+135 | `GSQL-0000`
+136 | The query is successful.
+137 
+138 | `GSQL-0001`
+139 | Vertices and edges were updated or inserted successfully.
+140 
+141 | `GSQL-0002`
+142 | Vertices were updated or inserted successfully.
+143 
+144 | `GSQL-0003`
+145 | Edges were updated or inserted successfully.
+146 |===
+147 
+148 ==== 1000 - 1999
+149 
+150 Query parameter errors.
+151 
+152 |===
+153 | Code | Description
+154 
+155 | `GSQL-1001`
+156 | The query contains a parameter with a `NULL` value.
+157 
+158 | `GSQL-1002`
+159 | General parameter error.
+160 
+161 | `GSQL-1020`
+162 | Invalid parameters.
+163 |===
+164 
+165 ==== 2000 - 2499
+166 
+167 JSON string related errors.
+168 
+169 |===
+170 | Code | Description
+171 
+172 | `GSQL-2010`
+173 | JSON object format error.
+174 
+175 | `GSQL-2011`
+176 | JSON array format error.
+177 |===
+178 
+179 ==== 2500 - 2999
+180 
+181 Operator errors.
+182 
+183 |===
+184 | Code | Description
+185 
+186 | `GSQL-2500`
+187 | Division by zero error.
+188 
+189 | `GSQL-2501`
+190 | The query contains incorrectly formatted `DATETIME` strings.
+191 
+192 | `GSQL-2502`
+193 | The query contains illegal patterns.
+194 
+195 | `GSQL-2503`
+196 | The query contains invalid operators.
+197 
+198 | `GSQL-2601`
+199 | The parameter provided is of the wrong primitive type.
+200 
+201 | `GSQL-2620`
+202 | The query contains an invalid array index.
+203 
+204 | `GSQL-2621`
+205 | The query contains an out-of-bounds array index.
+206 |===
+207 
+208 ==== 3000 - 3999
+209 
+210 Dynamic expression errors and expression function errors.
+211 
+212 |===
+213 | Code | Description
+214 
+215 | `GSQL-3000`
+216 | The query references non-existent attributes.
+217 
+218 | `GSQL-3001`
+219 | The query references non-existent vertex types.
+220 |===
+221 
+222 ==== 4500 - 4999
+223 
+224 Vertex type, edge type, and ID translation errors
+225 
+226 |===
+227 | Code | Description
+228 
+229 | `GSQL-4500`
+230 | The query references a vertex type that does not exist.
+231 
+232 | `GSQL-4501`
+233 | The query references an edge type that does not exist.
+234 
+235 | `GSQL-4502`
+236 | The query references an invalid vertex ID.
+237 
+238 | `GSQL-4511`
+239 | The query contains an invalid vertex attribute.
+240 
+241 | `GSQL-4521`
+242 | The query contains an invalid edge attribute.
+243 
+244 | `GSQL-4522`
+245 | The number of edge attributes is invalid.
+246 
+247 | `GSQL-4523`
+248 | An edge points from an invalid source vertex.
+249 
+250 | `GSQL-4524`
+251 | An edge points to an invalid target vertex.
+252 
+253 | `GSQL-4525`
+254 | An edge has both invalid source and target vertices.
+255 |===
+256 
+257 ==== 5000 - 5499
+258 
+259 Print errors.
+260 
+261 |===
+262 | Code | Description
+263 
+264 | `GSQL-5101`
+265 | A file referenced in the query cannot be opened.
+266 
+267 | `GSQL-5101`
+268 | A file referenced in the query does not exist.
+269 
+270 | `GSQL-5105`
+271 | GSQL was denied access to a file referenced in the query.
+272 
+273 | `GSQL-5111`
+274 | A file referenced in the query cannot be read.
+275 |===
+276 
+277 ==== 6000 - 6499
+278 
+279 Errors related to updating the graph.
+280 
+281 |===
+282 | Code | Description
+283 
+284 | `GSQL-6000`
+285 | The query inserts an edge with an unknown vertex.
+286 
+287 | `GSQL-6001`
+288 | Unsupported type of attribute update.
+289 |===
+290 
+291 ==== 6500 - 6999
+292 
+293 |===
+294 | Code | Description
+295 
+296 | `GSQL-6500`
+297 | The query was aborted by the user.
+298 |===
+299 
+300 ==== 7000 - 7999
+301 
+302 Built-in query errors.
+303 
+304 |===
+305 | Code | Description
+306 
+307 | `GSQL-7002`
+308 | The query timed out.
+309 |===
+310 
+311 ==== 8000 - 8999
+312 
+313 Unexpected exceptions (C{pp}).
+314 
+315 |===
+316 | Code | Description
+317 
+318 | `GSQL-8001`
+319 | Boost library exception
+320 
+321 | `GSQL-8002`
+322 | Runtime exception
+323 
+324 | `GSQL-8003`
+325 | `std` exception
+326 
+327 | `GSQL-8999`
+328 | All other exceptions
+329 |===
+330 
+331 ==== 40000+
+332 
+333 User-defined exception errors.
+334 
+335 === SYS
+336 
+337 This section covers engine-related errors.
+338 
+339 |===
+340 | Code | Description
+341 
+342 | `SYS-0001`
+343 | The engine is not available.
+344 
+345 | `SYS-0002`
+346 | The query was rejected because the memory limit has been reached.
+347 
+348 | `SYS-0003`
+349 | The query is aborted.
+350 
+351 | `SYS-0004`
+352 | The endpoint has been removed.
+353 |===
+354 
+355 == GSQL client exit codes
+356 
+357 The GSQL client will exit with non-zero code if there's an error while handling a user request. To check the exit code, run the Linux command `echo $?` and the exit code of the most recent command will be printed in the console.
+358 
+359 |===
+360 | *Exit Code* | *Description*
+361 
+362 | 0
+363 | No error
+364 
+365 | 41
+366 | Login or authentication error. The GSQL will also exit with this code if a graph with the supplied graph name cannot be found.
+367 
+368 | 201
+369 | Invalid argument error
+370 
+371 | 202
+372 | Connection error
+373 
+374 | 203
+375 | Compatibility error
+376 
+377 | 204
+378 | Session timeout
+379 
+380 | 211*
+381 | Syntax error
+382 
+383 | 212
+384 | Runtime error
+385 
+386 | 213*
+387 | No graph in use error
+388 
+389 | 255
+390 | Unknown error
+391 |===
+392 
+393 [NOTE]
+394 ====
+395 The exit codes marked with a star (*) are only applicable when a GSQL script is given as an argument.
+396 ====

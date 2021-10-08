@@ -1,232 +1,232 @@
-= User Management
-
-This page explains the procedures for various user management tasks under TigerGraph's authorization model.
-
-== Create a user
-
-=== *Syntax*
-
-[source,text]
-----
-CREATE USER
-----
-
-=== *Required privilege*
-
-`WRITE_USER`
-
-=== *Procedure*
-
-. From the GSQL shell, run the `CREATE USER` command:
-+
-[source,bash]
-----
-GSQL > CREATE USER
-----
-
-. Enter the user information in the prompts that follow:
-+
-.Example: Create user
-+
-[source,bash]
-----
-User Name : frank
-New Password : ************
-Re-enter Password : ************
-The user "frank" is created.
-----
-+
-
-
-== View roles of a user
-
-=== *Syntax*
-
-[source,text]
-----
-SHOW USER
-----
-
-=== *Required privilege*
-
-`READ_USER` for displaying roles of other users
-
-=== *Procedure*
-
-. From the GSQL shell, run the `SHOW USER` command:
-+
-[source,text]
-----
-GSQL > SHOW USER
-----
-
-If the user running the command has the `READ_USER` privilege, role information on all users will be displayed. Otherwise, only the current user's roles will be displayed.
-
-== View privileges of a user
-
-=== *Syntax*
-
-[source,gsql]
-----
-SHOW PRIVILEGE ON USER <username> (, <username>)*
-----
-
-=== *Required privilege*
-
-`READ_USER`
-
-=== *Procedure*
-
-. From the GSQL shell, run the `SHOW PRIVILEGE ON USER` command :
-+
-[source,text]
-----
-GSQL > SHOW PRIVILEGE ON USER tigergraph
-----
-
-The above command will show the privileges of user `tigergraph`:
-
-[source,text]
-----
-User: "tigergraph"
-  - Global Privileges:
-    READ_SCHEMA
-    WRITE_SCHEMA
-    READ_LOADINGJOB
-    EXECUTE_LOADINGJOB
-    WRITE_LOADINGJOB
-    READ_QUERY
-    WRITE_QUERY
-    READ_DATA
-    WRITE_DATA
-    WRITE_DATASOURCE
-    READ_ROLE
-    WRITE_ROLE
-    READ_USER
-    WRITE_USER
-    READ_PROXYGROUP
-    WRITE_PROXYGROUP
-    READ_FILE
-    WRITE_FILE
-    DROP_GRAPH
-    EXPORT_GRAPH
-    CLEAR_GRAPHSTORE
-    DROP_ALL
-    ACCESS_TAG
-----
-
-== Grant a role to a user
-
-=== *Syntax*
-
-[source,gsql]
-----
-GRANT ROLE <role_name1> (, role_name2)* [ON GRAPH <graph_name>]
-        TO <username1> (, <username2>)*
-----
-
-=== *Required privilege*
-
-`WRITE_ROLE`
-
-=== *Procedure*
-
-. Start the GSQL shell and make sure you are using the correct graph
-+
-[source,text]
-----
-$ gsql
-GSQL > USE GRAPH example_graph
-----
-
-. From the GSQL shell, run the `GRANT ROLE` command. You can grant multiple roles to multiple users:
-+
-[source,text]
-----
-GSQL > GRANT ROLE role1 , role2 ON GRAPH example_graph
-        TO user1, use2
-----
-
-The above command will grant roles `role1` and `role2` on graph `example_graph` to users `user1` and `user2`.
-
-== Revoke a role from a user
-
-=== *Syntax*
-
-[source,gsql]
-----
-REVOKE ROLE <roleName1> (, <roleName2)* [ON GRAPH <graphName>]
-        FROM <userName1> (, <userName2>)*
-----
-
-=== *Required privilege*
-
-`WRITE_ROLE`
-
-=== *Procedure*
-
-. Start the GSQL shell and make sure you are using the correct graph
-+
-[source,text]
-----
-$ gsql
-GSQL > USE GRAPH example_graph
-----
-
-. From the GSQL shell, run the `REVOKE_ROLE` command. You can revoke multiple roles from multiple users at the same time:
-+
-[source,text]
-----
-GSQL > REVOKE ROLE role1, role2 ON GRAPH example_graph
-        FROM user1, user2
-----
-
-The above command will revoke roles `role1` and `role2` on graph `example_graph` from users `user1` and `user2`.
-
-== Change a user's password
-
-=== *Syntax*
-
-[source,gsql]
-----
-ALTER PASSWORD <username>
-----
-
-=== *Required privilege*
-
-`WRITE_USER` for changing the password of a user other than the current user
-
-=== *Procedure*
-
-. From the GSQL shell, run the following command. Replace `username` with the user whose password you want to change
-+
-[source,text]
-----
-GSQL > ALTER PASSWORD username
-----
-
-. Enter the new password in the prompt that follows.
-
-== Drop a user
-
-=== *Syntax*
-
-[source,gsql]
-----
-DROP USER <user1> (,<user2>)*
-----
-
-=== *Required privilege*
-
-`WRITE_USER`
-
-=== *Procedure*
-
-. From the GSQL shell, run the `DROP USER` command. You can drop multiple users in the same command.
-+
-[source,text]
-----
-GSQL > DROP USER user1, user2
-----
-
-. GSQL will confirm that the users you entered have been dropped
+1 = User Management
+2 
+3 This page explains the procedures for various user management tasks under TigerGraph's authorization model.
+4 
+5 == Create a user
+6 
+7 === *Syntax*
+8 
+9 [source,text]
+10 ----
+11 CREATE USER
+12 ----
+13 
+14 === *Required privilege*
+15 
+16 `WRITE_USER`
+17 
+18 === *Procedure*
+19 
+20 . From the GSQL shell, run the `CREATE USER` command:
+21 +
+22 [source,bash]
+23 ----
+24 GSQL > CREATE USER
+25 ----
+26 
+27 . Enter the user information in the prompts that follow:
+28 +
+29 .Example: Create user
+30 +
+31 [source,bash]
+32 ----
+33 User Name : frank
+34 New Password : ************
+35 Re-enter Password : ************
+36 The user "frank" is created.
+37 ----
+38 +
+39 
+40 
+41 == View roles of a user
+42 
+43 === *Syntax*
+44 
+45 [source,text]
+46 ----
+47 SHOW USER
+48 ----
+49 
+50 === *Required privilege*
+51 
+52 `READ_USER` for displaying roles of other users
+53 
+54 === *Procedure*
+55 
+56 . From the GSQL shell, run the `SHOW USER` command:
+57 +
+58 [source,text]
+59 ----
+60 GSQL > SHOW USER
+61 ----
+62 
+63 If the user running the command has the `READ_USER` privilege, role information on all users will be displayed. Otherwise, only the current user's roles will be displayed.
+64 
+65 == View privileges of a user
+66 
+67 === *Syntax*
+68 
+69 [source,gsql]
+70 ----
+71 SHOW PRIVILEGE ON USER <username> (, <username>)*
+72 ----
+73 
+74 === *Required privilege*
+75 
+76 `READ_USER`
+77 
+78 === *Procedure*
+79 
+80 . From the GSQL shell, run the `SHOW PRIVILEGE ON USER` command :
+81 +
+82 [source,text]
+83 ----
+84 GSQL > SHOW PRIVILEGE ON USER tigergraph
+85 ----
+86 
+87 The above command will show the privileges of user `tigergraph`:
+88 
+89 [source,text]
+90 ----
+91 User: "tigergraph"
+92   - Global Privileges:
+93     READ_SCHEMA
+94     WRITE_SCHEMA
+95     READ_LOADINGJOB
+96     EXECUTE_LOADINGJOB
+97     WRITE_LOADINGJOB
+98     READ_QUERY
+99     WRITE_QUERY
+100     READ_DATA
+101     WRITE_DATA
+102     WRITE_DATASOURCE
+103     READ_ROLE
+104     WRITE_ROLE
+105     READ_USER
+106     WRITE_USER
+107     READ_PROXYGROUP
+108     WRITE_PROXYGROUP
+109     READ_FILE
+110     WRITE_FILE
+111     DROP_GRAPH
+112     EXPORT_GRAPH
+113     CLEAR_GRAPHSTORE
+114     DROP_ALL
+115     ACCESS_TAG
+116 ----
+117 
+118 == Grant a role to a user
+119 
+120 === *Syntax*
+121 
+122 [source,gsql]
+123 ----
+124 GRANT ROLE <role_name1> (, role_name2)* [ON GRAPH <graph_name>]
+125         TO <username1> (, <username2>)*
+126 ----
+127 
+128 === *Required privilege*
+129 
+130 `WRITE_ROLE`
+131 
+132 === *Procedure*
+133 
+134 . Start the GSQL shell and make sure you are using the correct graph
+135 +
+136 [source,text]
+137 ----
+138 $ gsql
+139 GSQL > USE GRAPH example_graph
+140 ----
+141 
+142 . From the GSQL shell, run the `GRANT ROLE` command. You can grant multiple roles to multiple users:
+143 +
+144 [source,text]
+145 ----
+146 GSQL > GRANT ROLE role1 , role2 ON GRAPH example_graph
+147         TO user1, use2
+148 ----
+149 
+150 The above command will grant roles `role1` and `role2` on graph `example_graph` to users `user1` and `user2`.
+151 
+152 == Revoke a role from a user
+153 
+154 === *Syntax*
+155 
+156 [source,gsql]
+157 ----
+158 REVOKE ROLE <roleName1> (, <roleName2)* [ON GRAPH <graphName>]
+159         FROM <userName1> (, <userName2>)*
+160 ----
+161 
+162 === *Required privilege*
+163 
+164 `WRITE_ROLE`
+165 
+166 === *Procedure*
+167 
+168 . Start the GSQL shell and make sure you are using the correct graph
+169 +
+170 [source,text]
+171 ----
+172 $ gsql
+173 GSQL > USE GRAPH example_graph
+174 ----
+175 
+176 . From the GSQL shell, run the `REVOKE_ROLE` command. You can revoke multiple roles from multiple users at the same time:
+177 +
+178 [source,text]
+179 ----
+180 GSQL > REVOKE ROLE role1, role2 ON GRAPH example_graph
+181         FROM user1, user2
+182 ----
+183 
+184 The above command will revoke roles `role1` and `role2` on graph `example_graph` from users `user1` and `user2`.
+185 
+186 == Change a user's password
+187 
+188 === *Syntax*
+189 
+190 [source,gsql]
+191 ----
+192 ALTER PASSWORD <username>
+193 ----
+194 
+195 === *Required privilege*
+196 
+197 `WRITE_USER` for changing the password of a user other than the current user
+198 
+199 === *Procedure*
+200 
+201 . From the GSQL shell, run the following command. Replace `username` with the user whose password you want to change
+202 +
+203 [source,text]
+204 ----
+205 GSQL > ALTER PASSWORD username
+206 ----
+207 
+208 . Enter the new password in the prompt that follows.
+209 
+210 == Drop a user
+211 
+212 === *Syntax*
+213 
+214 [source,gsql]
+215 ----
+216 DROP USER <user1> (,<user2>)*
+217 ----
+218 
+219 === *Required privilege*
+220 
+221 `WRITE_USER`
+222 
+223 === *Procedure*
+224 
+225 . From the GSQL shell, run the `DROP USER` command. You can drop multiple users in the same command.
+226 +
+227 [source,text]
+228 ----
+229 GSQL > DROP USER user1, user2
+230 ----
+231 
+232 . GSQL will confirm that the users you entered have been dropped

@@ -1,152 +1,152 @@
-= Comparing TigerGraph Editions
-
-This document compares what is included in the Enterprise Edition vs. TigerGraph Cloud of the TigerGraph platform.
-
-To see what has been added or changed in different releases (versions) of TigerGraph, see xref:release-notes:change-log.adoc/[Change Log].
-
-== Overview
-[width="100%",cols="<34%,<33%,<33%",options="header",]
-|===
-| |TigerGraph Cloud |Enterprise Edition
-|*Licensing* |Pay as you go by the minute; Annual contracts available |A
-free license is available with up to 50 GB storage after compression -
-https://info.tigergraph.com/pricing[contact us] for a paid version
-without storage limitations
-
-|*Includes* a|
-The power of TigerGraph, as a Service
-
-+ Instant Deployment
-
-+ Automatic backups
-
-+ Scaling out & Replication
-
-+ Security
-
-+ Pay for what you use
-
-|All TigerGraph Database and Enterprise features, including +
-+
-+ Distributed Graph +
-+
-+ MultiGraph +
-+
-+ Security +
-+
-+ User Management
-
-|*Support* |✅ |Free version includes support from the
-https://community.tigergraph.com/[Community Forum]. Contact us to get
-professional support.
-
-|*How to Get It*
-|https://www.tigergraph.com/cloud[www.tigergraph.com/cloud]
-|https://info.tigergraph.com/enterprise-free[www.tigergraph.com/free-trial]
-|===
-== Database Features
-
-[cols="<,^,^"]
-|===
-| Feature | TigerGraph Cloud | Enterprise Edition
-
-| *Native MPP Graph*
-| ✅
-| ✅
-
-| *Real-Time Deep Link Analytics*
-| ✅
-| ✅
-
-| *Ultra-Fast Loading and Updates*
-| ✅
-| ✅
-
-| *GSQL Query and Loading Language*  SQL-like syntax and built-in parallelism
-| ✅
-| ✅
-
-| *Graph Size*
-| Unlimited
-| Unlimited
-
-| *Compressed Data Store*
-| ✅
-| ✅
-
-| *In-Memory Processing;  ACID Transactions*
-| ✅
-| ✅
-
-| *Distributed, Auto-Partitioned Graph*
-| ✅
-| ✅
-
-| *MultiGraph*
-| ✅
-| ✅
-
-| *Dynamic Schema Change*
-| ✅
-| ✅
-
-| *GraphStudio Visual SDK and UI*  Design, Load, Explore, Query, Visualize
-| ✅
-| ✅
-
-| *Admin Portal*
-| ✅
-| ✅
-|===
-
-== Enterprise Features
-
-[cols="<,^,^"]
-|===
-| *Feature* | TigerGraph Cloud | Enterprise Edition
-
-| *Automated Deployment*
-| ✅
-| No
-
-| *Automated Backups*
-| ✅
-| No
-
-| *Backup and Restore*
-| ✅ built-in cloud feature
-| ✅
-
-| *Multiple Users*
-| ✅
-| ✅
-
-| *Continuous Availability*
-| ✅
-| ✅
-
-| *HA Replication*
-| ✅
-| ✅
-|===
-
-== Security Features
-
-[width="100%",cols="<34%,^33%,<33%",options="header",]
-|===
-|Feature |TigerGraph Cloud |Enterprise Edition
-|*Data Encryption* +
-+
-At Rest and In Motion |✅ |✅
-|*Enterprise User Management* +
-+
-LDAP and SSO |✅through GSQL web shell |✅
-|*Role-Based Access Control* |✅ |✅
-|*Audit Compliance* |✅SOC 2 type 1 and type 2 |Coming soon
-a|
-*Cloud Security:*
-
-VPC for each account
-
-|✅ |N/A
-|===
+1 = Comparing TigerGraph Editions
+2 
+3 This document compares what is included in the Enterprise Edition vs. TigerGraph Cloud of the TigerGraph platform.
+4 
+5 To see what has been added or changed in different releases (versions) of TigerGraph, see xref:release-notes:change-log.adoc/[Change Log].
+6 
+7 == Overview
+8 [width="100%",cols="<34%,<33%,<33%",options="header",]
+9 |===
+10 | |TigerGraph Cloud |Enterprise Edition
+11 |*Licensing* |Pay as you go by the minute; Annual contracts available |A
+12 free license is available with up to 50 GB storage after compression -
+13 https://info.tigergraph.com/pricing[contact us] for a paid version
+14 without storage limitations
+15 
+16 |*Includes* a|
+17 The power of TigerGraph, as a Service
+18 
+19 + Instant Deployment
+20 
+21 + Automatic backups
+22 
+23 + Scaling out & Replication
+24 
+25 + Security
+26 
+27 + Pay for what you use
+28 
+29 |All TigerGraph Database and Enterprise features, including +
+30 +
+31 + Distributed Graph +
+32 +
+33 + MultiGraph +
+34 +
+35 + Security +
+36 +
+37 + User Management
+38 
+39 |*Support* |✅ |Free version includes support from the
+40 https://community.tigergraph.com/[Community Forum]. Contact us to get
+41 professional support.
+42 
+43 |*How to Get It*
+44 |https://www.tigergraph.com/cloud[www.tigergraph.com/cloud]
+45 |https://info.tigergraph.com/enterprise-free[www.tigergraph.com/free-trial]
+46 |===
+47 == Database Features
+48 
+49 [cols="<,^,^"]
+50 |===
+51 | Feature | TigerGraph Cloud | Enterprise Edition
+52 
+53 | *Native MPP Graph*
+54 | ✅
+55 | ✅
+56 
+57 | *Real-Time Deep Link Analytics*
+58 | ✅
+59 | ✅
+60 
+61 | *Ultra-Fast Loading and Updates*
+62 | ✅
+63 | ✅
+64 
+65 | *GSQL Query and Loading Language*  SQL-like syntax and built-in parallelism
+66 | ✅
+67 | ✅
+68 
+69 | *Graph Size*
+70 | Unlimited
+71 | Unlimited
+72 
+73 | *Compressed Data Store*
+74 | ✅
+75 | ✅
+76 
+77 | *In-Memory Processing;  ACID Transactions*
+78 | ✅
+79 | ✅
+80 
+81 | *Distributed, Auto-Partitioned Graph*
+82 | ✅
+83 | ✅
+84 
+85 | *MultiGraph*
+86 | ✅
+87 | ✅
+88 
+89 | *Dynamic Schema Change*
+90 | ✅
+91 | ✅
+92 
+93 | *GraphStudio Visual SDK and UI*  Design, Load, Explore, Query, Visualize
+94 | ✅
+95 | ✅
+96 
+97 | *Admin Portal*
+98 | ✅
+99 | ✅
+100 |===
+101 
+102 == Enterprise Features
+103 
+104 [cols="<,^,^"]
+105 |===
+106 | *Feature* | TigerGraph Cloud | Enterprise Edition
+107 
+108 | *Automated Deployment*
+109 | ✅
+110 | No
+111 
+112 | *Automated Backups*
+113 | ✅
+114 | No
+115 
+116 | *Backup and Restore*
+117 | ✅ built-in cloud feature
+118 | ✅
+119 
+120 | *Multiple Users*
+121 | ✅
+122 | ✅
+123 
+124 | *Continuous Availability*
+125 | ✅
+126 | ✅
+127 
+128 | *HA Replication*
+129 | ✅
+130 | ✅
+131 |===
+132 
+133 == Security Features
+134 
+135 [width="100%",cols="<34%,^33%,<33%",options="header",]
+136 |===
+137 |Feature |TigerGraph Cloud |Enterprise Edition
+138 |*Data Encryption* +
+139 +
+140 At Rest and In Motion |✅ |✅
+141 |*Enterprise User Management* +
+142 +
+143 LDAP and SSO |✅through GSQL web shell |✅
+144 |*Role-Based Access Control* |✅ |✅
+145 |*Audit Compliance* |✅SOC 2 type 1 and type 2 |Coming soon
+146 a|
+147 *Cloud Security:*
+148 
+149 VPC for each account
+150 
+151 |✅ |N/A
+152 |===

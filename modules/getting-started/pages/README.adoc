@@ -1,14 +1,14 @@
-= Getting Started
-
-Welcome to the TigerGraph™ Platform - the first real-time, Native Parallel Graph data analytics platform. This document covers the various options to get started with TigerGraph.
-
-* If you are a laptop user (macOS or Windows), we recommend you use Docker to start up TigerGraph on your computer: xref:docker.adoc[].
-
-* If you have a Linux machine that meets our Software and Hardware Requirements, you can install TigerGraph on your machine directly: xref:installation:install.adoc[].
-
-
-* If you would like to run TigerGraph on a Virtual Machine with Virtual Box, follow this guide: xref:virtual-box.adoc[].
-
-* You can also start up TigerGraph instances from Cloud Images on AWS, Microsoft Azure, or Google Cloud Platform: xref:cloud-images/README.adoc[]
-
-To learn the basics of GSQL, see our GSQL 101
+1 = Getting Started
+2 
+3 Welcome to the TigerGraph™ Platform - the first real-time, Native Parallel Graph data analytics platform. This document covers the various options to get started with TigerGraph.
+4 
+5 * If you are a laptop user (macOS or Windows), we recommend you use Docker to start up TigerGraph on your computer: xref:docker.adoc[].
+6 
+7 * If you have a Linux machine that meets our Software and Hardware Requirements, you can install TigerGraph on your machine directly: xref:installation:install.adoc[].
+8 
+9 
+10 * If you would like to run TigerGraph on a Virtual Machine with Virtual Box, follow this guide: xref:virtual-box.adoc[].
+11 
+12 * You can also start up TigerGraph instances from Cloud Images on AWS, Microsoft Azure, or Google Cloud Platform: xref:cloud-images/README.adoc[]
+13 
+14 To learn the basics of GSQL, see our GSQL 101

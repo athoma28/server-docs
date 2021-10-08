@@ -1,298 +1,298 @@
-= System Administration FAQs
-
-[discrete]
-=== How do I apply or update my license key?
-
-If you have a version 1.0 string-type license key, then during initial platform installation, you can either specify your license key as an argument, for example:
-
-[source,text]
-----
-./install.sh -l <your_license_key>
-----
-
-Or you may input it when prompted.
-
-To apply a new license key string, use the following command:
-
-[source,text]
-----
-gadmin license set <license_key>
-or
-gadmin license set @textfile
-----
-
-If you have a version 2.0 file-type license key which is linked to a specific machine or cluster:
-
-* If this is the initial installation or you are updating a previous key file, then please see the document xref:installation:license.adoc[]
-* If you are updating from a version 1.0 key string to a version 2.0 key file, please contact link:mailto:support@tigergraph.com[support@tigergraph.com]for the correct procedure.
-
-[discrete]
-=== When does my license key expire?
-
-If you have a version 1.0 string-type license key, the following command will tell you your key's expiration date:
-
-[source,text]
-----
-gadmin status license
-----
-
-If you have a version 2.0 file-type license key which is linked to a specific machine or cluster, then run the following command:
-
-[source,text]
-----
-curl -X GET "localhost:9000/showlicenseinfo"
-----
-
-If you are running TigerGraph v3.0+, run the following command:
-
-[source,text]
-----
-gadmin license status
-----
-
-[discrete]
-=== What are the components of the TigerGraph platform?
-
-[source,text]
-----
-Command Line Usage Name : Official Name
-
-"GPE" : GPE,
-"GSE" : GSE,
-"RESTPP" : RESTPP,
-"GSQL" : GSQL,
-"EXE" : EXECUTOR,
-"IFM" : INFORMANT,
-"GUI" : GUI,
-"CTRL" : CONTROLLER,
-"KAFKA" : KAFKA,
-"ETCD" : ETCD,
-"ZK" : ZK,
-"NGINX" : NGINX,
-"TS3" : TS3,
-"TS3SERV" : TS3SERV,
-"DICT" : DICT,
-"ADMIN" : ADMIN,
-"KAFKACONN" : KAFKACONN,
-"KAFKASTRM-LL" : KAFKASTRMLL,
-----
-
-A description of each component is given in the Glossary section of the xref:intro:internal-architecture.adoc[] document.
-
-[discrete]
-=== How can I find out current status of the system?
-
-The following command tells you the basic summary of each component:
-
-[source,text]
-----
-gadmin status
-----
-
-If you want to know more, including process information, memory/cpu usage information of each component, use the -v option for verbose output.
-
-[source,text]
-----
-gadmin status -v
-----
-
-[discrete]
-=== How can I find out the port of a service?
-
-To find out the port of a service, use the `gadmin config get <port_name>` command:
-
-[source,text]
-----
-$ gadmin config get RESTPP.NginxPort
-----
-
-To list and edit all ports, use the following command:
-
-[source,text]
-----
-gadmin config group port
-----
-
-To change the port number of one service, use the following command:
-
-[source,text]
-----
-gadmin config set <port_name> <port_number>
-----
-
-[discrete]
-=== How do I backup my data?
-
-*GBAR* is the utility to do backup and restore of TigerGraph system.  Before a backup, GBAR needs to be configured. Please see xref:backup-and-restore:backup-and-restore.adoc[GBAR - Graph Backup and Restore] for details.
-
-To backup the current system:
-
-[source,text]
-----
-gbar backup -t <tag_of_the_backup>
-----
-
-Please be advised that GBAR only backs up data and configuration. No logs or binaries will be backed up.
-
-[discrete]
-=== How do I restore a backup?
-
-To restore an existing backup:
-
-[source,text]
-----
-gbar restore <tag_of_the_backup>
-----
-
-Please be advised that running restore will STOP the service and ERASE existing data.
-
-[discrete]
-=== How can I find out statistics of my graph data?
-
-You can get statistics of Graph data on TigerGraph database instance using *gstatusgraph* utility:
-
-[source,text]
-----
-Syntax:
-
-gstatusgraph [-s <node_name>]
-
-using -s to do statistics for one node
-----
-
-[source,text]
-----
-$ gstatusgraph
-=== graph ===
-[GRAPH  ] Graph was loaded (/data/tigergraph/tigergraph3/data/gstore/0/part/):
-[m1     ] Partition size: 43GiB, IDS size: 16GiB, Vertex count: 262053633, Edge count: 1115267545, NumOfDeletedVertices: 130988916 NumOfSkippedVertices: 0
-[m2     ] Partition size: 40GiB, IDS size: 16GiB, Vertex count: 261996922, Edge count: 971304656, NumOfDeletedVertices: 130998461 NumOfSkippedVertices: 0
-[m3     ] Partition size: 44GiB, IDS size: 16GiB, Vertex count: 271436710, Edge count: 1115214212, NumOfDeletedVertices: 121605839 NumOfSkippedVertices: 0
-[m4     ] Partition size: 44GiB, IDS size: 16GiB, Vertex count: 262030593, Edge count: 1191498785, NumOfDeletedVertices: 130964790 NumOfSkippedVertices: 0
-[WARN   ] Above vertex and edge counts are for internal use which show approximate topology size of the local graph partition. Use DML to get the correct graph topology information
-----
-
-[WARNING]
-====
-Due to a known bug, *gstatusgraph* command will count each undirected edge as two edges. To get an accurate number of undirected edges,  user should use the built-in queries instead. The message below is sent as a warning to users when *gstatusgraph* is used.
-
-`"[WARN ] Above vertex and edge counts are for internal use which show approximate topology size of the local graph partition. Use DML to get the correct graph topology information"`
-====
-
-[discrete]
-=== How can I find out statistics of requests?
-
-TigerGraph provides a RESTful API to tell request statistics. Assuming REST port is 9000, use command below:
-
-[source,text]
-----
-curl -l http://localhost:9000/statistics
-----
-
-[discrete]
-=== How do I restart a service?
-
-If you need to restart everything, use the following:
-
-[source,text]
-----
-gadmin restart
-----
-
-If you know which component(s) you want to restart,you can list them:
-
-[source,text]
-----
-gadmin restart <component_name(s)>
-----
-
-Multiple component names are separated by spaces.
-
-[discrete]
-=== How to I stop some or all services?
-
-Normally it is not necessary to manually turn off any services. However if you wish to, use the stop command.
-
-[source,text]
-----
-# stop (nearly) all services
-# will stop services except for infrastructure services
-gadmin stop
-
-# stop selected services
-gadmin stop <component_name(s)>
-----
-
-[discrete]
-=== Why the service is down?
-
-There are a few typical causes for a service being down:
-
-. Expired license key.  Double check your license key expiration date, and contact link:mailto:support@tigergraph.com[support@tigergraph.com]if it is expired. After applying a new license key, your service will come back online.  Usually, TigerGraph will reach out before your license key expires. Please act accordingly when that happens.
-. Not enough memory.  TigerGraph is a memory intensive system. When there is not much free memory, Linux may kill a process based on memory usage. Please check your memory usage after TigerGraph starts. We suggest at least 30% free memory after TigerGraph starts up.  To confirm if one of TigerGraph's processes is a victim, use http://man7.org/linux/man-pages/man1/dmesg.1.html[dmesg]to check.
-. Not enough free disk space.  TigerGraph writes data, logs, as well as some temporary files onto disk(s). It requires enough free space to function properly. If TigerGraph service or one of its components is down, please check whether there is enough free space on the disk using http://man7.org/linux/man-pages/man1/df.1.html[df].
-
-[discrete]
-=== Where are the logs?
-
-Use following command to figure out where are log files for each component:
-
-[source,text]
-----
-gadmin log
-----
-
-To log at the log file for a particular component:
-
-[source,text]
-----
-gadmin log <component>
-----
-
-[discrete]
-=== Why has my request timed out?
-
-Timeout is applied to any request coming into TigerGraph system. If a request runs longer than the Timeout value, it will be killed. The default timeout value is 16 second.
-
-If you knows that your query will run longer than the value, configure all related timeouts to a bigger value. To do this:
-
-[source,text]
-----
-gadmin config entry RESTPP.Factory.DefaultQueryTimeoutSec
-----
-
-Input a value you expected, the unit is in second. Then apply the config to the system and restart the service.
-
-[source,text]
-----
-gadmin config apply
-gadmin restart
-----
-
-The timeout can also be changed for each query, but only when calling the REST endpoint. You would need to use a timeout value each time you run a query, otherwise the default timeout value will be assumed.
-
-[source,text]
-----
-curl -X <GET/POST> -H "GSQL-TIMEOUT: <timeout value in milliseconds>" '<request_URL>'
-----
-
-[discrete]
-=== Where are the core dump files located?
-
-A core dump file is produced by the OS when a certain signal causes a process to terminate. The core dump is a disk file containing an image of the process's memory at the time of termination. This image can be used in a debugger (e.g., gdb) to inspect the state of the program at the time that it terminated.
-
-The TigerGraph installation process configures the operating system to place core dump files in the TigerGraph root directory, with the name *core-%e-%s-%p.%t,* where
-
-* %e: executable filename (without path prefix)
-* %s: signal number which caused the dump
-* %p: PID of dumped process
-* %t:  time of dump, expressed as seconds since the epoch
-
-The coredump configuration was set by the following command:
-
-[source,text]
-----
-echo "$coreLocation/core-%e-%s-%p.%t" > /proc/sys/kernel/core_pattern
-----
-
-If you want to alter the location or file name template, you can edit the contents of `/proc/sys/kernel/core_pattern`
+1 = System Administration FAQs
+2 
+3 [discrete]
+4 === How do I apply or update my license key?
+5 
+6 If you have a version 1.0 string-type license key, then during initial platform installation, you can either specify your license key as an argument, for example:
+7 
+8 [source,text]
+9 ----
+10 ./install.sh -l <your_license_key>
+11 ----
+12 
+13 Or you may input it when prompted.
+14 
+15 To apply a new license key string, use the following command:
+16 
+17 [source,text]
+18 ----
+19 gadmin license set <license_key>
+20 or
+21 gadmin license set @textfile
+22 ----
+23 
+24 If you have a version 2.0 file-type license key which is linked to a specific machine or cluster:
+25 
+26 * If this is the initial installation or you are updating a previous key file, then please see the document xref:installation:license.adoc[]
+27 * If you are updating from a version 1.0 key string to a version 2.0 key file, please contact link:mailto:support@tigergraph.com[support@tigergraph.com]for the correct procedure.
+28 
+29 [discrete]
+30 === When does my license key expire?
+31 
+32 If you have a version 1.0 string-type license key, the following command will tell you your key's expiration date:
+33 
+34 [source,text]
+35 ----
+36 gadmin status license
+37 ----
+38 
+39 If you have a version 2.0 file-type license key which is linked to a specific machine or cluster, then run the following command:
+40 
+41 [source,text]
+42 ----
+43 curl -X GET "localhost:9000/showlicenseinfo"
+44 ----
+45 
+46 If you are running TigerGraph v3.0+, run the following command:
+47 
+48 [source,text]
+49 ----
+50 gadmin license status
+51 ----
+52 
+53 [discrete]
+54 === What are the components of the TigerGraph platform?
+55 
+56 [source,text]
+57 ----
+58 Command Line Usage Name : Official Name
+59 
+60 "GPE" : GPE,
+61 "GSE" : GSE,
+62 "RESTPP" : RESTPP,
+63 "GSQL" : GSQL,
+64 "EXE" : EXECUTOR,
+65 "IFM" : INFORMANT,
+66 "GUI" : GUI,
+67 "CTRL" : CONTROLLER,
+68 "KAFKA" : KAFKA,
+69 "ETCD" : ETCD,
+70 "ZK" : ZK,
+71 "NGINX" : NGINX,
+72 "TS3" : TS3,
+73 "TS3SERV" : TS3SERV,
+74 "DICT" : DICT,
+75 "ADMIN" : ADMIN,
+76 "KAFKACONN" : KAFKACONN,
+77 "KAFKASTRM-LL" : KAFKASTRMLL,
+78 ----
+79 
+80 A description of each component is given in the Glossary section of the xref:intro:internal-architecture.adoc[] document.
+81 
+82 [discrete]
+83 === How can I find out current status of the system?
+84 
+85 The following command tells you the basic summary of each component:
+86 
+87 [source,text]
+88 ----
+89 gadmin status
+90 ----
+91 
+92 If you want to know more, including process information, memory/cpu usage information of each component, use the -v option for verbose output.
+93 
+94 [source,text]
+95 ----
+96 gadmin status -v
+97 ----
+98 
+99 [discrete]
+100 === How can I find out the port of a service?
+101 
+102 To find out the port of a service, use the `gadmin config get <port_name>` command:
+103 
+104 [source,text]
+105 ----
+106 $ gadmin config get RESTPP.NginxPort
+107 ----
+108 
+109 To list and edit all ports, use the following command:
+110 
+111 [source,text]
+112 ----
+113 gadmin config group port
+114 ----
+115 
+116 To change the port number of one service, use the following command:
+117 
+118 [source,text]
+119 ----
+120 gadmin config set <port_name> <port_number>
+121 ----
+122 
+123 [discrete]
+124 === How do I backup my data?
+125 
+126 *GBAR* is the utility to do backup and restore of TigerGraph system.  Before a backup, GBAR needs to be configured. Please see xref:backup-and-restore:backup-and-restore.adoc[GBAR - Graph Backup and Restore] for details.
+127 
+128 To backup the current system:
+129 
+130 [source,text]
+131 ----
+132 gbar backup -t <tag_of_the_backup>
+133 ----
+134 
+135 Please be advised that GBAR only backs up data and configuration. No logs or binaries will be backed up.
+136 
+137 [discrete]
+138 === How do I restore a backup?
+139 
+140 To restore an existing backup:
+141 
+142 [source,text]
+143 ----
+144 gbar restore <tag_of_the_backup>
+145 ----
+146 
+147 Please be advised that running restore will STOP the service and ERASE existing data.
+148 
+149 [discrete]
+150 === How can I find out statistics of my graph data?
+151 
+152 You can get statistics of Graph data on TigerGraph database instance using *gstatusgraph* utility:
+153 
+154 [source,text]
+155 ----
+156 Syntax:
+157 
+158 gstatusgraph [-s <node_name>]
+159 
+160 using -s to do statistics for one node
+161 ----
+162 
+163 [source,text]
+164 ----
+165 $ gstatusgraph
+166 === graph ===
+167 [GRAPH  ] Graph was loaded (/data/tigergraph/tigergraph3/data/gstore/0/part/):
+168 [m1     ] Partition size: 43GiB, IDS size: 16GiB, Vertex count: 262053633, Edge count: 1115267545, NumOfDeletedVertices: 130988916 NumOfSkippedVertices: 0
+169 [m2     ] Partition size: 40GiB, IDS size: 16GiB, Vertex count: 261996922, Edge count: 971304656, NumOfDeletedVertices: 130998461 NumOfSkippedVertices: 0
+170 [m3     ] Partition size: 44GiB, IDS size: 16GiB, Vertex count: 271436710, Edge count: 1115214212, NumOfDeletedVertices: 121605839 NumOfSkippedVertices: 0
+171 [m4     ] Partition size: 44GiB, IDS size: 16GiB, Vertex count: 262030593, Edge count: 1191498785, NumOfDeletedVertices: 130964790 NumOfSkippedVertices: 0
+172 [WARN   ] Above vertex and edge counts are for internal use which show approximate topology size of the local graph partition. Use DML to get the correct graph topology information
+173 ----
+174 
+175 [WARNING]
+176 ====
+177 Due to a known bug, *gstatusgraph* command will count each undirected edge as two edges. To get an accurate number of undirected edges,  user should use the built-in queries instead. The message below is sent as a warning to users when *gstatusgraph* is used.
+178 
+179 `"[WARN ] Above vertex and edge counts are for internal use which show approximate topology size of the local graph partition. Use DML to get the correct graph topology information"`
+180 ====
+181 
+182 [discrete]
+183 === How can I find out statistics of requests?
+184 
+185 TigerGraph provides a RESTful API to tell request statistics. Assuming REST port is 9000, use command below:
+186 
+187 [source,text]
+188 ----
+189 curl -l http://localhost:9000/statistics
+190 ----
+191 
+192 [discrete]
+193 === How do I restart a service?
+194 
+195 If you need to restart everything, use the following:
+196 
+197 [source,text]
+198 ----
+199 gadmin restart
+200 ----
+201 
+202 If you know which component(s) you want to restart,you can list them:
+203 
+204 [source,text]
+205 ----
+206 gadmin restart <component_name(s)>
+207 ----
+208 
+209 Multiple component names are separated by spaces.
+210 
+211 [discrete]
+212 === How to I stop some or all services?
+213 
+214 Normally it is not necessary to manually turn off any services. However if you wish to, use the stop command.
+215 
+216 [source,text]
+217 ----
+218 # stop (nearly) all services
+219 # will stop services except for infrastructure services
+220 gadmin stop
+221 
+222 # stop selected services
+223 gadmin stop <component_name(s)>
+224 ----
+225 
+226 [discrete]
+227 === Why the service is down?
+228 
+229 There are a few typical causes for a service being down:
+230 
+231 . Expired license key.  Double check your license key expiration date, and contact link:mailto:support@tigergraph.com[support@tigergraph.com]if it is expired. After applying a new license key, your service will come back online.  Usually, TigerGraph will reach out before your license key expires. Please act accordingly when that happens.
+232 . Not enough memory.  TigerGraph is a memory intensive system. When there is not much free memory, Linux may kill a process based on memory usage. Please check your memory usage after TigerGraph starts. We suggest at least 30% free memory after TigerGraph starts up.  To confirm if one of TigerGraph's processes is a victim, use http://man7.org/linux/man-pages/man1/dmesg.1.html[dmesg]to check.
+233 . Not enough free disk space.  TigerGraph writes data, logs, as well as some temporary files onto disk(s). It requires enough free space to function properly. If TigerGraph service or one of its components is down, please check whether there is enough free space on the disk using http://man7.org/linux/man-pages/man1/df.1.html[df].
+234 
+235 [discrete]
+236 === Where are the logs?
+237 
+238 Use following command to figure out where are log files for each component:
+239 
+240 [source,text]
+241 ----
+242 gadmin log
+243 ----
+244 
+245 To log at the log file for a particular component:
+246 
+247 [source,text]
+248 ----
+249 gadmin log <component>
+250 ----
+251 
+252 [discrete]
+253 === Why has my request timed out?
+254 
+255 Timeout is applied to any request coming into TigerGraph system. If a request runs longer than the Timeout value, it will be killed. The default timeout value is 16 second.
+256 
+257 If you knows that your query will run longer than the value, configure all related timeouts to a bigger value. To do this:
+258 
+259 [source,text]
+260 ----
+261 gadmin config entry RESTPP.Factory.DefaultQueryTimeoutSec
+262 ----
+263 
+264 Input a value you expected, the unit is in second. Then apply the config to the system and restart the service.
+265 
+266 [source,text]
+267 ----
+268 gadmin config apply
+269 gadmin restart
+270 ----
+271 
+272 The timeout can also be changed for each query, but only when calling the REST endpoint. You would need to use a timeout value each time you run a query, otherwise the default timeout value will be assumed.
+273 
+274 [source,text]
+275 ----
+276 curl -X <GET/POST> -H "GSQL-TIMEOUT: <timeout value in milliseconds>" '<request_URL>'
+277 ----
+278 
+279 [discrete]
+280 === Where are the core dump files located?
+281 
+282 A core dump file is produced by the OS when a certain signal causes a process to terminate. The core dump is a disk file containing an image of the process's memory at the time of termination. This image can be used in a debugger (e.g., gdb) to inspect the state of the program at the time that it terminated.
+283 
+284 The TigerGraph installation process configures the operating system to place core dump files in the TigerGraph root directory, with the name *core-%e-%s-%p.%t,* where
+285 
+286 * %e: executable filename (without path prefix)
+287 * %s: signal number which caused the dump
+288 * %p: PID of dumped process
+289 * %t:  time of dump, expressed as seconds since the epoch
+290 
+291 The coredump configuration was set by the following command:
+292 
+293 [source,text]
+294 ----
+295 echo "$coreLocation/core-%e-%s-%p.%t" > /proc/sys/kernel/core_pattern
+296 ----
+297 
+298 If you want to alter the location or file name template, you can edit the contents of `/proc/sys/kernel/core_pattern`

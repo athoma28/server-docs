@@ -1,176 +1,176 @@
-= Quickstart with GKE
-
-This is a quick start guide for deploying TigerGraph on Kubernetes with Google Kubernetes Engine (GKE).
-
-* <<Single-server deployment>>
-* <<Cluster deployment>>
-
-== Prerequisites
-
-* The https://cloud.google.com/sdk/docs/install[`gcloud` command-line interface (CLI) is installed] on your machine.
-* The https://kubernetes.io/docs/tasks/tools/[`kubectl` Kubernetes client command-line tool] is installed on your machine.
-* A running GKE  cluster with nodes that meet the minimum xref:installation:hw-and-sw-requirements.adoc[hardware and software requirements]for running TigerGraph.
-* You have https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl[configured cluster access for `kubectl`].
-
-== Single-server deployment
-
-This section describes the steps to deploy, verify, and remove a single-server deployment of TigerGraph on GKE.
-
-=== Deploy single server
-
-*Step 1: Generate deployment manifest*. Clone the https://github.com/tigergraph/ecosys[TigerGraph ecosystems repository] and change into the `k8s` directory. You can edit the `kustimization.yaml` file in the `gke` folder to change the namespace and image name for your deployment. The default namespace is `default`. No need to edit the files if no changes are needed.
-
-Next, run the `./tg` script in the `k8s` directory to generate the deployment manifest for a single-server deployment. A `deployment` directory will be created automatically and you should find the manifest named `tigergraph-gke.yaml` in the directory.
-
-[source,bash]
-----
-$ ./tg gke kustomize -s 1
-----
-
-*Step 2: Deploy manifest*. Run `kubectl apply` to create the deployment using the manifest you generated in Step1.
-
-[source,bash]
-----
-$ kubectl apply -f deployment/tigergraph-gke.yaml
-----
-
-=== Verify single server
-
-Run `kubectl get pods` to confirm that the pods were created successfully:
-
-[source,bash]
-----
-$ kubectl get pods
-NAME              READY   STATUS    RESTARTS   AGE
-installer-zsnb4   1/1     Running   0          4m11s
-tigergraph-0      1/1     Running   0          4m10s
-----
-
-Run `kubectl describe service/tg-external-service` to find the IP address of the load balancer. You can then make curl calls to port 9000 to make sure that RESTPP is running:
-
-[source,bash]
-----
-$ curl <load_balancer_ip>:9000/echo | jq .
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100    39  100    39    0     0    120      0 --:--:-- --:--:-- --:--:--   120
-{
-  "error": false,
-  "message": "Hello GSQL"
-}
-----
-
-You can also copy the IP address into your browser and visit port 14240 to make sure that GraphStudio is working.
-
-=== Connect to single server
-
-You can use `kubectl` to get a shell to the container or log in via `ssh`
-
-[source,text]
-----
-# Via kubectl
-kubectl exec -it tigergraph-0 -- /bin/bash
-
-# Via ssh
-ip_m1=$(kubectl get pod -o wide |grep tigergraph-0| awk '{print $6}')
-ssh tigergraph@ip_m1
-----
-
-=== Remove single server resources
-
-Run the command below to delete all cluster resources:
-
-[source,text]
-----
-$ kubectl delete -f deploy/tigergraph-gke.yaml && kubectl delete pvc -l app=tigergraph
-----
-
-== Cluster deployment
-
-Once your GKE cluster is ready, you can start following the below steps to deploy a TigerGraph cluster on Kubernetes.
-
-=== Deploy TigerGraph cluster
-
-==== 1. Generate Kubernetes manifest
-
-Clone the https://github.com/tigergraph/ecosys.git[TigerGraph ecosystem repository] and change into the `k8s` directory:
-
-[source,text]
-----
-$ git clone https://github.com/tigergraph/ecosys.git
-$ cd ecosys/k8s
-----
-
-You can customize your deployment by editing the `kustomize.yaml` file in the `gke` directory. The `tg` script in the `k8s` folder offers a convenient way to make common customizations such as namespace, TigerGraph version, as well as cluster size. Run `./tg -h` to view the help text on how to use the script.
-
-Use the `tg` script in the `k8s` directory of the repo to create a Kubernetes manifest.  Use `-s` or `--size` to indicate the number of nodes in the cluster. Use the `--ha` option to indicate the replication factor of the cluster, and the partitioning factor will be the number of nodes divided by the replication factor.
-
-For example, the following command will create a manifest that will deploy a 3*2 cluster with a replication factor of 2 and a partitioning factor of 3.
-
-[source,text]
-----
-$ ./tg gke kustomize -s 6 --ha 2
-----
-
-The command will create a directory named `deployment` with the manifest inside.
-
-==== 2. Deploy the cluster
-
-Run `kubectl apply` to create the deployment
-
-[source,text]
-----
-$ kubectl apply -f ./deployment/tigergraph-gke.yaml
-----
-
-=== Verify cluster
-
-Run `kubectl get pods` to verify the pods were created successfully:
-
-[source,text]
-----
-$ kubectl get pods
-NAME              READY   STATUS    RESTARTS   AGE
-installer-zsnb4   1/1     Running   0          4m11s
-tigergraph-0      1/1     Running   0          4m10s
-tigergraph-1      1/1     Running   0          75s
-----
-
-Run `kubectl describe service/tg-external-service` to find the IP address of the load balancer for your GKE cluster. You can make a curl call to port 9000 to make sure that RESTPP is working:
-
-[source,text]
-----
-$ curl <load_balancer_ip>:9000/echo | jq .
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100    39  100    39    0     0    120      0 --:--:-- --:--:-- --:--:--   120
-{
-  "error": false,
-  "message": "Hello GSQL"
-}
-----
-
-You can also copy the IP address into your browser and visit port 14240 to make sure that GraphStudio is working.
-
-=== Connect to instances
-
-You can use `kubectl` to get a shell to the container or log in via `ssh`
-
-[source,text]
-----
-# Via kubectl
-kubectl exec -it tigergraph-0 -- /bin/bash
-
-# Via ssh
-ip_m1=$(kubectl get pod -o wide |grep tigergraph-0| awk '{print $6}')
-ssh tigergraph@ip_m1
-----
-
-=== Delete cluster resources
-
-Run the command below to delete all cluster resources:
-
-[source,text]
-----
-$ kubectl delete -f deploy/tigergraph-gke.yaml && kubectl delete pvc -l app=tigergraph
-----
+1 = Quickstart with GKE
+2 
+3 This is a quick start guide for deploying TigerGraph on Kubernetes with Google Kubernetes Engine (GKE).
+4 
+5 * <<Single-server deployment>>
+6 * <<Cluster deployment>>
+7 
+8 == Prerequisites
+9 
+10 * The https://cloud.google.com/sdk/docs/install[`gcloud` command-line interface (CLI) is installed] on your machine.
+11 * The https://kubernetes.io/docs/tasks/tools/[`kubectl` Kubernetes client command-line tool] is installed on your machine.
+12 * A running GKE  cluster with nodes that meet the minimum xref:installation:hw-and-sw-requirements.adoc[hardware and software requirements]for running TigerGraph.
+13 * You have https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl[configured cluster access for `kubectl`].
+14 
+15 == Single-server deployment
+16 
+17 This section describes the steps to deploy, verify, and remove a single-server deployment of TigerGraph on GKE.
+18 
+19 === Deploy single server
+20 
+21 *Step 1: Generate deployment manifest*. Clone the https://github.com/tigergraph/ecosys[TigerGraph ecosystems repository] and change into the `k8s` directory. You can edit the `kustimization.yaml` file in the `gke` folder to change the namespace and image name for your deployment. The default namespace is `default`. No need to edit the files if no changes are needed.
+22 
+23 Next, run the `./tg` script in the `k8s` directory to generate the deployment manifest for a single-server deployment. A `deployment` directory will be created automatically and you should find the manifest named `tigergraph-gke.yaml` in the directory.
+24 
+25 [source,bash]
+26 ----
+27 $ ./tg gke kustomize -s 1
+28 ----
+29 
+30 *Step 2: Deploy manifest*. Run `kubectl apply` to create the deployment using the manifest you generated in Step1.
+31 
+32 [source,bash]
+33 ----
+34 $ kubectl apply -f deployment/tigergraph-gke.yaml
+35 ----
+36 
+37 === Verify single server
+38 
+39 Run `kubectl get pods` to confirm that the pods were created successfully:
+40 
+41 [source,bash]
+42 ----
+43 $ kubectl get pods
+44 NAME              READY   STATUS    RESTARTS   AGE
+45 installer-zsnb4   1/1     Running   0          4m11s
+46 tigergraph-0      1/1     Running   0          4m10s
+47 ----
+48 
+49 Run `kubectl describe service/tg-external-service` to find the IP address of the load balancer. You can then make curl calls to port 9000 to make sure that RESTPP is running:
+50 
+51 [source,bash]
+52 ----
+53 $ curl <load_balancer_ip>:9000/echo | jq .
+54   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+55                                  Dload  Upload   Total   Spent    Left  Speed
+56 100    39  100    39    0     0    120      0 --:--:-- --:--:-- --:--:--   120
+57 {
+58   "error": false,
+59   "message": "Hello GSQL"
+60 }
+61 ----
+62 
+63 You can also copy the IP address into your browser and visit port 14240 to make sure that GraphStudio is working.
+64 
+65 === Connect to single server
+66 
+67 You can use `kubectl` to get a shell to the container or log in via `ssh`
+68 
+69 [source,text]
+70 ----
+71 # Via kubectl
+72 kubectl exec -it tigergraph-0 -- /bin/bash
+73 
+74 # Via ssh
+75 ip_m1=$(kubectl get pod -o wide |grep tigergraph-0| awk '{print $6}')
+76 ssh tigergraph@ip_m1
+77 ----
+78 
+79 === Remove single server resources
+80 
+81 Run the command below to delete all cluster resources:
+82 
+83 [source,text]
+84 ----
+85 $ kubectl delete -f deploy/tigergraph-gke.yaml && kubectl delete pvc -l app=tigergraph
+86 ----
+87 
+88 == Cluster deployment
+89 
+90 Once your GKE cluster is ready, you can start following the below steps to deploy a TigerGraph cluster on Kubernetes.
+91 
+92 === Deploy TigerGraph cluster
+93 
+94 ==== 1. Generate Kubernetes manifest
+95 
+96 Clone the https://github.com/tigergraph/ecosys.git[TigerGraph ecosystem repository] and change into the `k8s` directory:
+97 
+98 [source,text]
+99 ----
+100 $ git clone https://github.com/tigergraph/ecosys.git
+101 $ cd ecosys/k8s
+102 ----
+103 
+104 You can customize your deployment by editing the `kustomize.yaml` file in the `gke` directory. The `tg` script in the `k8s` folder offers a convenient way to make common customizations such as namespace, TigerGraph version, as well as cluster size. Run `./tg -h` to view the help text on how to use the script.
+105 
+106 Use the `tg` script in the `k8s` directory of the repo to create a Kubernetes manifest.  Use `-s` or `--size` to indicate the number of nodes in the cluster. Use the `--ha` option to indicate the replication factor of the cluster, and the partitioning factor will be the number of nodes divided by the replication factor.
+107 
+108 For example, the following command will create a manifest that will deploy a 3*2 cluster with a replication factor of 2 and a partitioning factor of 3.
+109 
+110 [source,text]
+111 ----
+112 $ ./tg gke kustomize -s 6 --ha 2
+113 ----
+114 
+115 The command will create a directory named `deployment` with the manifest inside.
+116 
+117 ==== 2. Deploy the cluster
+118 
+119 Run `kubectl apply` to create the deployment
+120 
+121 [source,text]
+122 ----
+123 $ kubectl apply -f ./deployment/tigergraph-gke.yaml
+124 ----
+125 
+126 === Verify cluster
+127 
+128 Run `kubectl get pods` to verify the pods were created successfully:
+129 
+130 [source,text]
+131 ----
+132 $ kubectl get pods
+133 NAME              READY   STATUS    RESTARTS   AGE
+134 installer-zsnb4   1/1     Running   0          4m11s
+135 tigergraph-0      1/1     Running   0          4m10s
+136 tigergraph-1      1/1     Running   0          75s
+137 ----
+138 
+139 Run `kubectl describe service/tg-external-service` to find the IP address of the load balancer for your GKE cluster. You can make a curl call to port 9000 to make sure that RESTPP is working:
+140 
+141 [source,text]
+142 ----
+143 $ curl <load_balancer_ip>:9000/echo | jq .
+144   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+145                                  Dload  Upload   Total   Spent    Left  Speed
+146 100    39  100    39    0     0    120      0 --:--:-- --:--:-- --:--:--   120
+147 {
+148   "error": false,
+149   "message": "Hello GSQL"
+150 }
+151 ----
+152 
+153 You can also copy the IP address into your browser and visit port 14240 to make sure that GraphStudio is working.
+154 
+155 === Connect to instances
+156 
+157 You can use `kubectl` to get a shell to the container or log in via `ssh`
+158 
+159 [source,text]
+160 ----
+161 # Via kubectl
+162 kubectl exec -it tigergraph-0 -- /bin/bash
+163 
+164 # Via ssh
+165 ip_m1=$(kubectl get pod -o wide |grep tigergraph-0| awk '{print $6}')
+166 ssh tigergraph@ip_m1
+167 ----
+168 
+169 === Delete cluster resources
+170 
+171 Run the command below to delete all cluster resources:
+172 
+173 [source,text]
+174 ----
+175 $ kubectl delete -f deploy/tigergraph-gke.yaml && kubectl delete pvc -l app=tigergraph
+176 ----

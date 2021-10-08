@@ -32,21 +32,24 @@ for subdir in os.scandir(modulesFolder):
                         # get the relative path
                         imagePath = image.group(1)
                         imageName = re.search('/assets/(.*\..*)', imagePath)
-                        imageName = imageName.group(1)
-                        line = (re.sub(r'image::(.*)\[(.*)]', r'image::'+imageName+r'[\2]', line))
+                        if imageName:
+                            imageName = imageName.group(1)
+                            line = (re.sub(r'image::(.*)\[(.*)]', r'image::'+imageName+r'[\2]', line))
                         
                     elif iimage:
                         imagePath = iimage.group(1)
                         imageName = re.search('/assets/(.*\..*)', imagePath)
-                        imageName = imageName.group(1)
-                        line = (re.sub(r'image:(.*)\[(.*)]', r'image:'+imageName+r'[\2]', line))
+                        if imageName:
+                            imageName = imageName.group(1)
+                            line = (re.sub(r'image:(.*)\[(.*)]', r'image:'+imageName+r'[\2]', line))
 
                     if image or iimage:
-                        print(imageName)
-                        # find the image in the 'assets' folder
-                        sourceImage = os.path.join("assets", imageName)
-                        # strip special characters
-                        sourceImage = urllib.parse.unquote(sourceImage)
-                        destinationImage = os.path.join(newImagesFolder, imageName)
-                        destinationImage = urllib.parse.unquote(destinationImage)
-                        copyfile(sourceImage, destinationImage)
+                        if imageName:
+                            # find the image in the 'assets' folder
+                            sourceImage = os.path.join("assets", imageName)
+                            # strip special characters
+                            sourceImage = urllib.parse.unquote(sourceImage)
+                            destinationImage = os.path.join(newImagesFolder, imageName)
+                            destinationImage = urllib.parse.unquote(destinationImage)
+                            copyfile(sourceImage, destinationImage)
+                    print('{} {}'.format(fileinput.filelineno(), line), end='')

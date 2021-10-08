@@ -1,855 +1,855 @@
-= Managing with gadmin
-:description: Managing TigerGraph Servers with gadmin
-
-== Introduction
-
-TigerGraph Graph Administrator (gadmin) is a tool for managing TigerGraph servers. It has a self-contained help function and a man page, whose output is shown below for reference.
-
-To see a listing of all the options or commands available for gadmin, run any of the following commands:
-
-[source,text]
-----
-$ gadmin -h
-$ gadmin --help
-----
-
-[NOTE]
-====
-After changing a configuration setting, it is generally necessary to run *`gadmin config apply`.* Some commands invoke config apply automatically. If you are not certain, just run +
-*`gadmin config apply`*
-====
-
-== List of commands
-
-Below is the man page for gadmin. Most of the commands are self-explanatory. Common examples are provided with each command.
-
-[NOTE]
-====
-Some commands have changed in v3.0. In particular, +
-`gadmin set <config | license>` +
-has changed to +
-`gadmin <config | license> set`
-====
-
-[source,text]
-----
-GADMIN(1)                         User Commands                                GADMIN(1)
-
-NAME
-       gadmin - manual page for TigerGraph Administrator.
-
-SYNOPSIS
-       gadmin [flags]
-       gadmin [command]
-
-DESCRIPTION
-       gadmin is a tool for managing TigerGraph servers
-
-OPTIONS
-       Available Commands:
-         autocomplete Generate autocomplete script
-         config       Manage the configuration for the TigerGraph system
-         help         Help about any command
-         init         Init the whole cluster or given service
-         license      Manage TigerGraph license
-         log          List log files of the given services or all services
-         reset        Reset the whole init or given service with its data
-         restart      Restart services by service id
-         start        Start services by service id
-         status       Show current status of service
-         stop         Stop services by service id
-         version      Show the version information
-
-Flags:
-      --debug   enable debug log output to stdout
-  -h, --help    help for gadmin
-
-Use "gadmin [command] --help" for more information about a command.
-GADMIN(1)
-----
-
-=== gadmin autocomplete
-
-Gadmin autocomplete is more of a feature than a command. It is an auto-complete feature that allows you to see all possible entries of a specific configuration. You can press tab when typing a command to either print out all possible entries, or auto-complete the entry you are currently typing.
-
-[source,text]
-----
-$ gadmin autocomplete -h
-
-Generate autocomplete script
-
-Usage:
-  gadmin autocomplete <bash|zsh> [flags]
-
-Description:
-  If you want to make this automatic, add ". <(gadmin autocomplete bash)" to your
-  .bashrc file.
-
-Flags:
-  -h, --help   help for autocomplete
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-The example below shows an example of the autocomplete for the command `gadmin status`.
-
-[source,text]
-----
-tigergraph@ubuntu:~$ gadmin status
-admin         exe           ifm           nginx
-all           gpe           infra         restpp
-ctrl          gse           kafka         ts3
-dict          gsql          kafkaconn     ts3serv
-etcd          gui           kafkastrm-ll  zk
-----
-
-=== gadmin config
-
-`gadmin config` commands are used to manage the configuration for the TigerGraph system. To get a complete list of configuration parameters that are available, see xref:reference:configuration-parameters.adoc[Configuration Parameters].
-
-`gadmin config` has many sub-entries as well, they will be listed below.
-
-[source,text]
-----
-$ gadmin config -h
-
-Manage the configuration for the TigerGraph system
-
-Usage:
-  gadmin config [flags]
-  gadmin config [command]
-
-Description:
-  You can specify local config file to turn on file mode, which no remote
-  connection will be made and the configs are read/write from/to the file.Note: Not
-  all config commands work on file mode.
-
-Available Commands:
-  apply       Apply the config changes in staging state
-  diff        Show the differences between staging and applied configs
-  discard     Discard the staging config changes
-  dump        Dump the staging system config in json format
-  entry       Configure the entries with given substring patterns interactively
-  get         Get the config value of given entry name non-interactivly
-  group       Configure the entries of given groups interactively
-  init        Initialize configuration
-  list        List the available config entries or groups
-  set         Configure the entry of given config entry name in a non-interactive manner
-
-Flags:
-      --file string   specify config file path
-  -h, --help          help for config
-
-Global Flags:
-      --debug   enable debug log output to stdout
-
-Use "gadmin config [command] --help" for more information about a command.
-----
-
-Example: Change the retention size of the kafka queue to 10GB:
-
-[source,text]
-----
-$ gadmin config set Kafka.RetentionSizeGB 10
-----
-
-==== gadmin config apply
-
-[source,text]
-----
-$ gadmin config apply -h
-Apply the config changes in staging state
-
-Usage:
-  gadmin config apply [flags]
-
-Flags:
-  -y, --confirm              confirm to apply
-  -f, --force                force components to apply new config
-  -h, --help                 help for apply
-      --initial              config apply with the initial configuration when the remote config (ETCD) is empty
-      --with-config string   the input config file used to config apply, will overwrite both local and remote(ETCD)
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config diff
-
-Show what configuration changes were made.
-
-[source,text]
-----
-$ gadmin config diff -h
-Show the differences between staging and applied configs
-
-Usage:
-  gadmin config diff [flags]
-
-Flags:
-  -h, --help   help for diff
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config discard
-
-Discard the configuration changes without applying them.
-
-[source,text]
-----
-$ gadmin config discard -h
-Discard the staging config changes
-
-Usage:
-  gadmin config discard [flags]
-
-Flags:
-  -h, --help   help for discard
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config dump
-
-Display all configuration entries.
-
-[source,text]
-----
-$ gadmin config dump -h
-Dump the staging system config in json format
-
-Usage:
-  gadmin config dump [flags]
-
-Flags:
-  -h, --help   help for dump
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config entry
-
-Change a configuration entry.
-
-[source,text]
-----
-$ gadmin config entry -h
-Configure the entries with given substring patterns interactively
-
-Usage:
-  gadmin config entry [EntryName] [flags]
-
-Description:
-  You may use `config entry system` to go through all the system related entries.
-
-Flags:
-  -a, --all     configure all entries
-      --basic   configure basic entries only
-  -h, --help    help for entry
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config get
-
-Get the value of a specific configuration entry.
-
-[source,text]
-----
-$ gadmin config get -h
-Get the config value of given entry name non-interactivly
-
-Usage:
-  gadmin config get [EntryName] [flags]
-
-Flags:
-  -h, --help   help for get
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config group
-
-Configure entries for a specific service group. +
-e.g. KAFKA, GPE, ZK
-
-[source,text]
-----
-$ gadmin config group -h
-Configure the entries of given groups interactively
-
-Usage:
-  gadmin config group [GroupName] [flags]
-
-Description:
-  You may use `gadmin config list group` to see all the groups.
-
-Flags:
-  -h, --help   help for group
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config init
-
-Initialize your configuration.
-
-[source,text]
-----
-$ gadmin config init -h
-Initialize configuration
-
-Usage:
-  gadmin config init [flags]
-
-Flags:
-      --all            display every configurable entry
-      --expert         display node assignment entries
-      --ha             enable HA for init
-  -h, --help           help for init
-  -i, --input string   provide an input file name and init the configuration silently with the provided input file
-      --template       show the template for init initialization
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config list
-
-List all configurable entries or entry groups.
-
-[source,text]
-----
-$ gadmin config list -h
-List the available config entries or groups
-
-Usage:
-  gadmin config list <group|entry> [flags]
-
-Description:
-  List prints out the available config groups or config entries, which can be used
-  in entry/group commands.
-
-Flags:
-      --basic   list basic entries only
-  -h, --help    help for list
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-==== gadmin config set
-
-[source,text]
-----
-$ gadmin config set -h
-Configure the entry of given config entry name in a non-interactive manner
-
-Usage:
-  gadmin config set [EntryName] [EntryValue] [flags]
-
-Description:
-  [EntryName] [EntryValue] must be provided in pairs, and use space to separate
-  each pair.
-
-Flags:
-  -h, --help   help for set
-
-Global Flags:
-      --debug         enable debug log output to stdout
-      --file string   specify config file path
-----
-
-=== gadmin init
-
-[source,text]
-----
-$ gadmin init -h
-
-Init the whole cluster or given service
-
-Usage:
-  gadmin init [flags]
-  gadmin init [command]
-
-Description:
-  Init command initializes the cluster/kafka. When "cluster" is specified,
-  a config path is required.
-
-Available Commands:
-  cluster     Init the whole cluster
-  kafka       Init the KAFKA
-
-Flags:
-  -h, --help   help for init
-
-Global Flags:
-      --debug   enable debug log output to stdout
-
-Use "gadmin init [command] --help" for more information about a command.
-----
-
-=== gadmin license
-
-Options for configuring your license.
-
-[source,text]
-----
-$ gadmin license -h
-
-Manage TigerGraph license
-
-Usage:
-  gadmin license [flags]
-  gadmin license [command]
-
-Available Commands:
-  seed        Collects host signature and generates seed file for issuing license
-  set         Set new license
-  status      Display license status and info
-
-Flags:
-  -h, --help   help for license
-
-Global Flags:
-      --debug   enable debug log output to stdout
-
-Use "gadmin license [command] --help" for more information about a command.
-----
-
-==== Generating a license seed
-
-To generate a license seed, use the following command:
-
-[source,bash]
-----
-$ gadmin license seed <host_signature_type>
-# host_signature_type: [aws|azure|gcp|hardware|node-id]
-----
-
-Depending on your host machine, you need to choose the appropriate host signature type. If you are generating the seed from a cloud instance, choose the corresponding cloud provider as your signature type.
-
-If you are generating the seed from your own machine, choose either `node-id` or `hardware`.
-
-* The `hardware` option tells `gadmin` to collect information from your machine's hardware as the host signature to generate the license seed. A signature produced by using this parameter will not be altered by software changes on the machine, including OS reinstalls. This is the usual choice.
-* `node-id` refers to the machine ID in the `machine-id` file located at `/etc/machine-id` and is a unique signature for the OS that identifies your machine. A reinstall of the OS may change the machine ID.
-
-==== Applying a new license key
-
-Example flow for applying a new license (which may be replacing an existing license key):
-
-[source,text]
-----
-$ gadmin license set <new_license_key>
-[   Info] Configuration has been changed.
-Please use 'gadmin config apply' to persist the changes.
-
-$ gadmin config apply
-[Warning] No difference from staging config, config apply is skipped.
-[   Info] Successfully applied configuration change. Please restart services to make it effective immediately.
-
-$ gadmin restart
-[   Note] Restart the service(s)? (y/N)y
-[   Info] Stopping DICT ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 GUI
-[   Info] Starting ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 GUI
-----
-
-Once the license has been set and config has been applied, you can run `gadmin license status` to view the details of your license, including the expiration date and time.
-
-[source,text]
-----
-$ gadmin license status
-[Warning] License will expire in 6 days
-
-   Issuer: TigerGraph Inc.
- Audience: tigergraph user
-IssueTime: 2020-06-12 17:45:10 +0000 UTC
-  EndTime: 2020-06-30 17:45:10 +0000 UTC
-  Edition: Enterprise
-
-Host:
-	MaxCPUCore: 1024
-	MaxPhysicalMemorySize: 1073741824.00MB
-	MaxClusterNodeNumber: 1024
-
-Topology:
-	MaxVertexNumber: 9.007199254740991e+15
-	MaxEdgeNumber: 9.007199254740991e+15
-	MaxGraphNumber: 1000
-	MaxTopologySize: 8.00MB
-
-RuntimeMemory:
-	MaxUserResidentSetSize: 1073741824.00MB
-----
-
-=== gadmin log
-
-The `gadmin log` command will reveal the location of all commonly checked log files for the TigerGraph system.
-
-[source,text]
-----
-$ gadmin log -h
-
-List log files of the given services or all services
-
-Usage:
-  gadmin log [service name...] [flags]
-
-Description:
-  Service name should be a valid TigerGraph service name, for example, GSE, RESTPP
-  or GPE.
-
-Flags:
-  -h, --help   help for log
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-[source,text]
-----
-$ gadmin log
-ADMIN  : /home/tigergraph/tigergraph/log/admin/ADMIN#1.out
-ADMIN  : /home/tigergraph/tigergraph/log/admin/ADMIN.INFO
-CTRL   : /home/tigergraph/tigergraph/log/controller/CTRL#1.log
-CTRL   : /home/tigergraph/tigergraph/log/controller/CTRL#1.out
-DICT   : /home/tigergraph/tigergraph/log/dict/DICT#1.out
-DICT   : /home/tigergraph/tigergraph/log/dict/DICT.INFO
-ETCD   : /home/tigergraph/tigergraph/log/etcd/ETCD#1.out
-EXE    : /home/tigergraph/tigergraph/log/executor/EXE_1.log
-EXE    : /home/tigergraph/tigergraph/log/executor/EXE_1.out
-GPE    : /home/tigergraph/tigergraph/log/gpe/GPE_1#1.out
-GSE    : /home/tigergraph/tigergraph/log/gse/GSE_1#1.out
-GSE    : /home/tigergraph/tigergraph/log/gse/log.INFO
-GSQL   : /home/tigergraph/tigergraph/log/gsql/GSQL#1.out
-GSQL   : /home/tigergraph/tigergraph/log/gsql/log.INFO
-GUI    : /home/tigergraph/tigergraph/log/gui/GUI#1.out
-IFM    : /home/tigergraph/tigergraph/log/informant/IFM#1.log
-IFM    : /home/tigergraph/tigergraph/log/informant/IFM#1.out
-KAFKA  : /home/tigergraph/tigergraph/log/kafka/controller.log
-KAFKA  : /home/tigergraph/tigergraph/log/kafka/kafka-request.log
-KAFKA  : /home/tigergraph/tigergraph/log/kafka/kafka.log
-KAFKA  : /home/tigergraph/tigergraph/log/kafka/server.log
-KAFKA  : /home/tigergraph/tigergraph/log/kafka/state-change.log
-KAFKACONN: /home/tigergraph/tigergraph/log/kafkaconn/KAFKACONN#1.out
-KAFKACONN: /home/tigergraph/tigergraph/log/kafkaconn/kafkaconn.log
-KAFKASTRM-LL: /home/tigergraph/tigergraph/log/kafkastrm-ll/KAFKASTRM-LL_1.out
-KAFKASTRM-LL: /home/tigergraph/tigergraph/log/kafkastrm-ll/kafkastrm-ll.log
-NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/NGINX#1.out
-NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/error.log
-NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/nginx.access.log
-NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/nginx.error.log
-RESTPP : /home/tigergraph/tigergraph/log/restpp/RESTPP#1.out
-RESTPP : /home/tigergraph/tigergraph/log/restpp/log.INFO
-TS3    : /home/tigergraph/tigergraph/log/ts3/TS3_1.log
-TS3    : /home/tigergraph/tigergraph/log/ts3/TS3_1.out
-TS3SERV: /home/tigergraph/tigergraph/log/ts3serv/TS3SERV#1.out
-ZK     : /home/tigergraph/tigergraph/log/zk/ZK#1.out
-ZK     : /home/tigergraph/tigergraph/log/zk/zookeeper.log
-----
-
-=== gadmin reset
-
-[source,text]
-----
-$ gadmin reset -h
-
-Reset the whole init or given service with its data
-
-Usage:
-  gadmin reset [service name...] [flags]
-
-Description:
-  Service name should be a valid TigerGraph service name, for example, GSE, RESTPP
-  or GPE.
-
-Flags:
-  -y, --confirm   confirm to reset service
-  -h, --help      help for reset
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-=== gadmin restart
-
-The `gadmin restart` command is used to restart one, many, or all TigerGraph services. You will need to confirm the restarting of services by either entering y (yes) or n (no). To bypass this prompt, you can use the -y flag to force confirmation.
-
-[source,text]
-----
-$ gadmin restart -h
-
-Restart services by service id
-
-Usage:
-  gadmin restart [serviceID...] [flags]
-
-Description:
-  ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
-  replica field empty(e.g. GSE_1) to either refer to all replicas of given
-  partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
-
-Flags:
-  -y, --confirm   confirm to restart service
-  -h, --help      help for restart
-      --no-dep    restart service without dependency
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-[source,text]
-----
-$ gadmin restart all -y
-[   Info] Stopping ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 IFM GUI
-[   Info] Stopping CTRL
-[   Info] Stopping EXE
-[   Info] Starting EXE
-[   Info] Starting CTRL
-[   Info] Starting ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 IFM GUI
-----
-
-=== gadmin start
-
-The `gadmin start` command can be used to start one, many, or all services.
-
-[source,text]
-----
-$ gadmin start -h
-
-Start services by service id
-
-Usage:
-  gadmin start [serviceID...] [flags]
-
-Description:
-  ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
-  replica field empty(e.g. GSE_1) to either refer to all replicas of given
-  partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
-  If no serviceID is specified, it only starts services excluding the
-  infrastructure. Use 'gadmin start all' to start all services.
-
-Flags:
-      --dry-run              dry run and output command to start the service
-  -h, --help                 help for start
-      --no-dep               start service without dependency
-      --with-config string   start with given config file and dump it to each node (only for executor)
-      --ignore-error         starting services with ignore-error will start all possible services, and ensure that the platform can still start and run normally when some services or some nodes are down
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-[source,text]
-----
-$ gadmin start all
-[   Info] Starting EXE
-[   Info] Starting CTRL
-[   Info] Starting ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 IFM GUI
-----
-
-=== gadmin status
-
-Check the status of TigerGraph component servers:
-
-[source,text]
-----
-$ gadmin status -h
-
-Show current status of service
-
-Usage:
-  gadmin status [serviceID...] [flags]
-
-Description:
-  ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
-  replica field empty(e.g. GSE_1) to either refer to all replicas of given
-  partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
-  If no serviceID is specified, it will show all service status
-
-Flags:
-  -h, --help      help for status
-  -v, --verbose   report service status in detail
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-Use *`gadmin status`* to report whether each of the main component servers is running (up) or stopped (off).  The example below shows the normal status when the graph store is empty and a graph schema has not been defined:
-
-[source,text]
-----
-$ gadmin status
-
-+--------------------+-------------------------+-------------------------+
-|    Service Name    |     Service Status      |      Process State      |
-+--------------------+-------------------------+-------------------------+
-|       ADMIN        |         Online          |         Running         |
-|        CTRL        |         Online          |         Running         |
-|        DICT        |         Online          |         Running         |
-|        ETCD        |         Online          |         Running         |
-|        GPE         |         Online          |         Running         |
-|        GSE         |         Online          |         Running         |
-|        GSQL        |         Online          |         Running         |
-|        GUI         |         Online          |         Running         |
-|        IFM         |         Online          |         Running         |
-|       KAFKA        |         Online          |         Running         |
-|     KAFKACONN      |         Online          |         Running         |
-|    KAFKASTRM-LL    |         Online          |         Running         |
-|       NGINX        |         Online          |         Running         |
-|       RESTPP       |         Online          |         Running         |
-|        TS3         |         Online          |         Running         |
-|      TS3SERV       |         Online          |         Running         |
-|         ZK         |         Online          |         Running         |
-+--------------------+-------------------------+-------------------------+
-----
-
-You  can also check the status of each instance using the verbose flag : `gadmin status -v`  or `gadmin status --verbose`. This will show each machine's status. See example below
-
-[source,text]
-----
-$ gadmin status -v GPE
-
-+--------------------+-------------------------+-------------------------+
-|    Service Name    |     Service Status      |      Process State      |
-+--------------------+-------------------------+-------------------------+
-|      GPE_1#1       |         Warmup          |         Running         |
-|      GPE_1#2       |         Warmup          |         Running         |
-+--------------------+-------------------------+-------------------------+
-----
-
-Here are the most common service and process status states you might see from running the `gadmin status` command :
-
-==== Service Status Definitions
-
-* *Online* - The service is online and ready.
-* *Warmup* - The service is processing the graph information and will be online soon.
-* *Stopping* - The service has received a stop command and will be down soon.
-* *Offline* - The service is not available.
-* *Down* - The service has been stopped or crashed.
-* *StatusUnknown* - The valid status of the service is not tracked.
-
-==== Process State Status Definitions
-
-* *Init* - Process is initializing and will be in the running state soon.
-* *Running* - The process is running and available.
-* *Zombie* - There is a leftover process from a previous instance.
-* *Stopped* - The process has been stopped or crashed.
-* *StatusUnknown* - The valid status of the process is not tracked.
-
-=== gadmin stop
-
-The gadmin stop command can be used to stop one, many, or all TigerGraph services. You will need to confirm the restarting of services by either entering y (yes) or n (no). To bypass this prompt, you can use the -y flag to force confirmation.
-
-[source,text]
-----
-$ gadmin stop -h
-
-Stop services by service id
-
-Usage:
-  gadmin stop [serviceID...] [flags]
-
-Description:
-  ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
-  replica field empty(e.g. GSE_1) to either refer to all replicas of given
-  partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
-  If no serviceID is specified, it only stops services excluding the
-  infrastructure. Use 'gadmin stop all' to stop all services.
-
-Flags:
-  -y, --confirm   confirm to stop service
-  -h, --help      help for stop
-  --ignore-error  stopping services with ignore-error will stop all possible services, and ensure that the platform can still stop and run normally when some services or some nodes are down
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-[source,text]
-----
-$ gadmin stop gsql
-[   Note] Stop the service(s)? (y/N)y
-[   Info] Stopping GSQL
-----
-
-=== gadmin version
-
-[source,text]
-----
-$ gadmin version -h
-
-Show the version information
-
-Usage:
-  gadmin version [flags]
-
-Description:
-  Show version information of all TigerGraph components, including repo name,
-  version, git commit number, git commit datetime.
-
-Flags:
-  -h, --help   help for version
-
-Global Flags:
-      --debug   enable debug log output to stdout
-----
-
-== More examples
-
-=== *Configuring memory use thresholds*
-
-TigerGraph offers two levels of memory thresholds using the following configuration settings:
-
-*SysAlertFreePct* and *SysMinFreePct*
-
-*SysAlertFreePct* setting indicates that the memory usage has crossed a threshold where the system will start throttling Queries to allow long-running queries to finish and release the memory.
-
-*SysMinFreePct* setting indicates that the memory usage has crossed a critical threshold and the Queries will start aborting automatically to prevent GPE crash and system stability.
-
-By default, SysMinFreePct is set at 10%, at which point Queries will be aborted.​
-
-[source,text]
-----
-$ gadmin config entry GPE.BasicConfig.Env
-
-GPE.BasicConfig.Env [ LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH; ]: The runtime environment variables, separated by ';'
-✔ New: LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH;
-
-Add this line to the existing config :
-SysMinFreePct=20;SysAlertFreePct=70;
-
-Your config line should now look like this :
-
-GPE.BasicConfig.Env [ LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH; ]: The runtime environment variables, separated by ';'
-✔ New: LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH;SysMinFreePct=20;SysAlertFreePct=30;
-
-$ gadmin restart gpe -y
-----
-
-*Example:*
-
-*SysAlertFreePct=30* means when the system memory consumption is over *70%* of the memory, the system will enter an alert state, and Graph updates will start to slow down.
-
-*SysMinFreePct=20* means 20% of the memory is required to be free. When memory consumption enters a critical state *(over 80% memory consumption)* queries will be aborted. automatically.
-
-=== *Configuring Nginx configuration template​*
-
-Follow the steps documented in https://tigergraph.freshdesk.com/support/solutions/articles/5000867964-change-default-value-for-fastcgi-read-timeout-nginx-configuration-[this support article] to update the Nginx configurations of your TigerGraph instance.
+1 = Managing with gadmin
+2 :description: Managing TigerGraph Servers with gadmin
+3 
+4 == Introduction
+5 
+6 TigerGraph Graph Administrator (gadmin) is a tool for managing TigerGraph servers. It has a self-contained help function and a man page, whose output is shown below for reference.
+7 
+8 To see a listing of all the options or commands available for gadmin, run any of the following commands:
+9 
+10 [source,text]
+11 ----
+12 $ gadmin -h
+13 $ gadmin --help
+14 ----
+15 
+16 [NOTE]
+17 ====
+18 After changing a configuration setting, it is generally necessary to run *`gadmin config apply`.* Some commands invoke config apply automatically. If you are not certain, just run +
+19 *`gadmin config apply`*
+20 ====
+21 
+22 == List of commands
+23 
+24 Below is the man page for gadmin. Most of the commands are self-explanatory. Common examples are provided with each command.
+25 
+26 [NOTE]
+27 ====
+28 Some commands have changed in v3.0. In particular, +
+29 `gadmin set <config | license>` +
+30 has changed to +
+31 `gadmin <config | license> set`
+32 ====
+33 
+34 [source,text]
+35 ----
+36 GADMIN(1)                         User Commands                                GADMIN(1)
+37 
+38 NAME
+39        gadmin - manual page for TigerGraph Administrator.
+40 
+41 SYNOPSIS
+42        gadmin [flags]
+43        gadmin [command]
+44 
+45 DESCRIPTION
+46        gadmin is a tool for managing TigerGraph servers
+47 
+48 OPTIONS
+49        Available Commands:
+50          autocomplete Generate autocomplete script
+51          config       Manage the configuration for the TigerGraph system
+52          help         Help about any command
+53          init         Init the whole cluster or given service
+54          license      Manage TigerGraph license
+55          log          List log files of the given services or all services
+56          reset        Reset the whole init or given service with its data
+57          restart      Restart services by service id
+58          start        Start services by service id
+59          status       Show current status of service
+60          stop         Stop services by service id
+61          version      Show the version information
+62 
+63 Flags:
+64       --debug   enable debug log output to stdout
+65   -h, --help    help for gadmin
+66 
+67 Use "gadmin [command] --help" for more information about a command.
+68 GADMIN(1)
+69 ----
+70 
+71 === gadmin autocomplete
+72 
+73 Gadmin autocomplete is more of a feature than a command. It is an auto-complete feature that allows you to see all possible entries of a specific configuration. You can press tab when typing a command to either print out all possible entries, or auto-complete the entry you are currently typing.
+74 
+75 [source,text]
+76 ----
+77 $ gadmin autocomplete -h
+78 
+79 Generate autocomplete script
+80 
+81 Usage:
+82   gadmin autocomplete <bash|zsh> [flags]
+83 
+84 Description:
+85   If you want to make this automatic, add ". <(gadmin autocomplete bash)" to your
+86   .bashrc file.
+87 
+88 Flags:
+89   -h, --help   help for autocomplete
+90 
+91 Global Flags:
+92       --debug   enable debug log output to stdout
+93 ----
+94 
+95 The example below shows an example of the autocomplete for the command `gadmin status`.
+96 
+97 [source,text]
+98 ----
+99 tigergraph@ubuntu:~$ gadmin status
+100 admin         exe           ifm           nginx
+101 all           gpe           infra         restpp
+102 ctrl          gse           kafka         ts3
+103 dict          gsql          kafkaconn     ts3serv
+104 etcd          gui           kafkastrm-ll  zk
+105 ----
+106 
+107 === gadmin config
+108 
+109 `gadmin config` commands are used to manage the configuration for the TigerGraph system. To get a complete list of configuration parameters that are available, see xref:reference:configuration-parameters.adoc[Configuration Parameters].
+110 
+111 `gadmin config` has many sub-entries as well, they will be listed below.
+112 
+113 [source,text]
+114 ----
+115 $ gadmin config -h
+116 
+117 Manage the configuration for the TigerGraph system
+118 
+119 Usage:
+120   gadmin config [flags]
+121   gadmin config [command]
+122 
+123 Description:
+124   You can specify local config file to turn on file mode, which no remote
+125   connection will be made and the configs are read/write from/to the file.Note: Not
+126   all config commands work on file mode.
+127 
+128 Available Commands:
+129   apply       Apply the config changes in staging state
+130   diff        Show the differences between staging and applied configs
+131   discard     Discard the staging config changes
+132   dump        Dump the staging system config in json format
+133   entry       Configure the entries with given substring patterns interactively
+134   get         Get the config value of given entry name non-interactivly
+135   group       Configure the entries of given groups interactively
+136   init        Initialize configuration
+137   list        List the available config entries or groups
+138   set         Configure the entry of given config entry name in a non-interactive manner
+139 
+140 Flags:
+141       --file string   specify config file path
+142   -h, --help          help for config
+143 
+144 Global Flags:
+145       --debug   enable debug log output to stdout
+146 
+147 Use "gadmin config [command] --help" for more information about a command.
+148 ----
+149 
+150 Example: Change the retention size of the kafka queue to 10GB:
+151 
+152 [source,text]
+153 ----
+154 $ gadmin config set Kafka.RetentionSizeGB 10
+155 ----
+156 
+157 ==== gadmin config apply
+158 
+159 [source,text]
+160 ----
+161 $ gadmin config apply -h
+162 Apply the config changes in staging state
+163 
+164 Usage:
+165   gadmin config apply [flags]
+166 
+167 Flags:
+168   -y, --confirm              confirm to apply
+169   -f, --force                force components to apply new config
+170   -h, --help                 help for apply
+171       --initial              config apply with the initial configuration when the remote config (ETCD) is empty
+172       --with-config string   the input config file used to config apply, will overwrite both local and remote(ETCD)
+173 
+174 Global Flags:
+175       --debug         enable debug log output to stdout
+176       --file string   specify config file path
+177 ----
+178 
+179 ==== gadmin config diff
+180 
+181 Show what configuration changes were made.
+182 
+183 [source,text]
+184 ----
+185 $ gadmin config diff -h
+186 Show the differences between staging and applied configs
+187 
+188 Usage:
+189   gadmin config diff [flags]
+190 
+191 Flags:
+192   -h, --help   help for diff
+193 
+194 Global Flags:
+195       --debug         enable debug log output to stdout
+196       --file string   specify config file path
+197 ----
+198 
+199 ==== gadmin config discard
+200 
+201 Discard the configuration changes without applying them.
+202 
+203 [source,text]
+204 ----
+205 $ gadmin config discard -h
+206 Discard the staging config changes
+207 
+208 Usage:
+209   gadmin config discard [flags]
+210 
+211 Flags:
+212   -h, --help   help for discard
+213 
+214 Global Flags:
+215       --debug         enable debug log output to stdout
+216       --file string   specify config file path
+217 ----
+218 
+219 ==== gadmin config dump
+220 
+221 Display all configuration entries.
+222 
+223 [source,text]
+224 ----
+225 $ gadmin config dump -h
+226 Dump the staging system config in json format
+227 
+228 Usage:
+229   gadmin config dump [flags]
+230 
+231 Flags:
+232   -h, --help   help for dump
+233 
+234 Global Flags:
+235       --debug         enable debug log output to stdout
+236       --file string   specify config file path
+237 ----
+238 
+239 ==== gadmin config entry
+240 
+241 Change a configuration entry.
+242 
+243 [source,text]
+244 ----
+245 $ gadmin config entry -h
+246 Configure the entries with given substring patterns interactively
+247 
+248 Usage:
+249   gadmin config entry [EntryName] [flags]
+250 
+251 Description:
+252   You may use `config entry system` to go through all the system related entries.
+253 
+254 Flags:
+255   -a, --all     configure all entries
+256       --basic   configure basic entries only
+257   -h, --help    help for entry
+258 
+259 Global Flags:
+260       --debug         enable debug log output to stdout
+261       --file string   specify config file path
+262 ----
+263 
+264 ==== gadmin config get
+265 
+266 Get the value of a specific configuration entry.
+267 
+268 [source,text]
+269 ----
+270 $ gadmin config get -h
+271 Get the config value of given entry name non-interactivly
+272 
+273 Usage:
+274   gadmin config get [EntryName] [flags]
+275 
+276 Flags:
+277   -h, --help   help for get
+278 
+279 Global Flags:
+280       --debug         enable debug log output to stdout
+281       --file string   specify config file path
+282 ----
+283 
+284 ==== gadmin config group
+285 
+286 Configure entries for a specific service group. +
+287 e.g. KAFKA, GPE, ZK
+288 
+289 [source,text]
+290 ----
+291 $ gadmin config group -h
+292 Configure the entries of given groups interactively
+293 
+294 Usage:
+295   gadmin config group [GroupName] [flags]
+296 
+297 Description:
+298   You may use `gadmin config list group` to see all the groups.
+299 
+300 Flags:
+301   -h, --help   help for group
+302 
+303 Global Flags:
+304       --debug         enable debug log output to stdout
+305       --file string   specify config file path
+306 ----
+307 
+308 ==== gadmin config init
+309 
+310 Initialize your configuration.
+311 
+312 [source,text]
+313 ----
+314 $ gadmin config init -h
+315 Initialize configuration
+316 
+317 Usage:
+318   gadmin config init [flags]
+319 
+320 Flags:
+321       --all            display every configurable entry
+322       --expert         display node assignment entries
+323       --ha             enable HA for init
+324   -h, --help           help for init
+325   -i, --input string   provide an input file name and init the configuration silently with the provided input file
+326       --template       show the template for init initialization
+327 
+328 Global Flags:
+329       --debug         enable debug log output to stdout
+330       --file string   specify config file path
+331 ----
+332 
+333 ==== gadmin config list
+334 
+335 List all configurable entries or entry groups.
+336 
+337 [source,text]
+338 ----
+339 $ gadmin config list -h
+340 List the available config entries or groups
+341 
+342 Usage:
+343   gadmin config list <group|entry> [flags]
+344 
+345 Description:
+346   List prints out the available config groups or config entries, which can be used
+347   in entry/group commands.
+348 
+349 Flags:
+350       --basic   list basic entries only
+351   -h, --help    help for list
+352 
+353 Global Flags:
+354       --debug         enable debug log output to stdout
+355       --file string   specify config file path
+356 ----
+357 
+358 ==== gadmin config set
+359 
+360 [source,text]
+361 ----
+362 $ gadmin config set -h
+363 Configure the entry of given config entry name in a non-interactive manner
+364 
+365 Usage:
+366   gadmin config set [EntryName] [EntryValue] [flags]
+367 
+368 Description:
+369   [EntryName] [EntryValue] must be provided in pairs, and use space to separate
+370   each pair.
+371 
+372 Flags:
+373   -h, --help   help for set
+374 
+375 Global Flags:
+376       --debug         enable debug log output to stdout
+377       --file string   specify config file path
+378 ----
+379 
+380 === gadmin init
+381 
+382 [source,text]
+383 ----
+384 $ gadmin init -h
+385 
+386 Init the whole cluster or given service
+387 
+388 Usage:
+389   gadmin init [flags]
+390   gadmin init [command]
+391 
+392 Description:
+393   Init command initializes the cluster/kafka. When "cluster" is specified,
+394   a config path is required.
+395 
+396 Available Commands:
+397   cluster     Init the whole cluster
+398   kafka       Init the KAFKA
+399 
+400 Flags:
+401   -h, --help   help for init
+402 
+403 Global Flags:
+404       --debug   enable debug log output to stdout
+405 
+406 Use "gadmin init [command] --help" for more information about a command.
+407 ----
+408 
+409 === gadmin license
+410 
+411 Options for configuring your license.
+412 
+413 [source,text]
+414 ----
+415 $ gadmin license -h
+416 
+417 Manage TigerGraph license
+418 
+419 Usage:
+420   gadmin license [flags]
+421   gadmin license [command]
+422 
+423 Available Commands:
+424   seed        Collects host signature and generates seed file for issuing license
+425   set         Set new license
+426   status      Display license status and info
+427 
+428 Flags:
+429   -h, --help   help for license
+430 
+431 Global Flags:
+432       --debug   enable debug log output to stdout
+433 
+434 Use "gadmin license [command] --help" for more information about a command.
+435 ----
+436 
+437 ==== Generating a license seed
+438 
+439 To generate a license seed, use the following command:
+440 
+441 [source,bash]
+442 ----
+443 $ gadmin license seed <host_signature_type>
+444 # host_signature_type: [aws|azure|gcp|hardware|node-id]
+445 ----
+446 
+447 Depending on your host machine, you need to choose the appropriate host signature type. If you are generating the seed from a cloud instance, choose the corresponding cloud provider as your signature type.
+448 
+449 If you are generating the seed from your own machine, choose either `node-id` or `hardware`.
+450 
+451 * The `hardware` option tells `gadmin` to collect information from your machine's hardware as the host signature to generate the license seed. A signature produced by using this parameter will not be altered by software changes on the machine, including OS reinstalls. This is the usual choice.
+452 * `node-id` refers to the machine ID in the `machine-id` file located at `/etc/machine-id` and is a unique signature for the OS that identifies your machine. A reinstall of the OS may change the machine ID.
+453 
+454 ==== Applying a new license key
+455 
+456 Example flow for applying a new license (which may be replacing an existing license key):
+457 
+458 [source,text]
+459 ----
+460 $ gadmin license set <new_license_key>
+461 [   Info] Configuration has been changed.
+462 Please use 'gadmin config apply' to persist the changes.
+463 
+464 $ gadmin config apply
+465 [Warning] No difference from staging config, config apply is skipped.
+466 [   Info] Successfully applied configuration change. Please restart services to make it effective immediately.
+467 
+468 $ gadmin restart
+469 [   Note] Restart the service(s)? (y/N)y
+470 [   Info] Stopping DICT ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 GUI
+471 [   Info] Starting ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 GUI
+472 ----
+473 
+474 Once the license has been set and config has been applied, you can run `gadmin license status` to view the details of your license, including the expiration date and time.
+475 
+476 [source,text]
+477 ----
+478 $ gadmin license status
+479 [Warning] License will expire in 6 days
+480 
+481    Issuer: TigerGraph Inc.
+482  Audience: tigergraph user
+483 IssueTime: 2020-06-12 17:45:10 +0000 UTC
+484   EndTime: 2020-06-30 17:45:10 +0000 UTC
+485   Edition: Enterprise
+486 
+487 Host:
+488 	MaxCPUCore: 1024
+489 	MaxPhysicalMemorySize: 1073741824.00MB
+490 	MaxClusterNodeNumber: 1024
+491 
+492 Topology:
+493 	MaxVertexNumber: 9.007199254740991e+15
+494 	MaxEdgeNumber: 9.007199254740991e+15
+495 	MaxGraphNumber: 1000
+496 	MaxTopologySize: 8.00MB
+497 
+498 RuntimeMemory:
+499 	MaxUserResidentSetSize: 1073741824.00MB
+500 ----
+501 
+502 === gadmin log
+503 
+504 The `gadmin log` command will reveal the location of all commonly checked log files for the TigerGraph system.
+505 
+506 [source,text]
+507 ----
+508 $ gadmin log -h
+509 
+510 List log files of the given services or all services
+511 
+512 Usage:
+513   gadmin log [service name...] [flags]
+514 
+515 Description:
+516   Service name should be a valid TigerGraph service name, for example, GSE, RESTPP
+517   or GPE.
+518 
+519 Flags:
+520   -h, --help   help for log
+521 
+522 Global Flags:
+523       --debug   enable debug log output to stdout
+524 ----
+525 
+526 [source,text]
+527 ----
+528 $ gadmin log
+529 ADMIN  : /home/tigergraph/tigergraph/log/admin/ADMIN#1.out
+530 ADMIN  : /home/tigergraph/tigergraph/log/admin/ADMIN.INFO
+531 CTRL   : /home/tigergraph/tigergraph/log/controller/CTRL#1.log
+532 CTRL   : /home/tigergraph/tigergraph/log/controller/CTRL#1.out
+533 DICT   : /home/tigergraph/tigergraph/log/dict/DICT#1.out
+534 DICT   : /home/tigergraph/tigergraph/log/dict/DICT.INFO
+535 ETCD   : /home/tigergraph/tigergraph/log/etcd/ETCD#1.out
+536 EXE    : /home/tigergraph/tigergraph/log/executor/EXE_1.log
+537 EXE    : /home/tigergraph/tigergraph/log/executor/EXE_1.out
+538 GPE    : /home/tigergraph/tigergraph/log/gpe/GPE_1#1.out
+539 GSE    : /home/tigergraph/tigergraph/log/gse/GSE_1#1.out
+540 GSE    : /home/tigergraph/tigergraph/log/gse/log.INFO
+541 GSQL   : /home/tigergraph/tigergraph/log/gsql/GSQL#1.out
+542 GSQL   : /home/tigergraph/tigergraph/log/gsql/log.INFO
+543 GUI    : /home/tigergraph/tigergraph/log/gui/GUI#1.out
+544 IFM    : /home/tigergraph/tigergraph/log/informant/IFM#1.log
+545 IFM    : /home/tigergraph/tigergraph/log/informant/IFM#1.out
+546 KAFKA  : /home/tigergraph/tigergraph/log/kafka/controller.log
+547 KAFKA  : /home/tigergraph/tigergraph/log/kafka/kafka-request.log
+548 KAFKA  : /home/tigergraph/tigergraph/log/kafka/kafka.log
+549 KAFKA  : /home/tigergraph/tigergraph/log/kafka/server.log
+550 KAFKA  : /home/tigergraph/tigergraph/log/kafka/state-change.log
+551 KAFKACONN: /home/tigergraph/tigergraph/log/kafkaconn/KAFKACONN#1.out
+552 KAFKACONN: /home/tigergraph/tigergraph/log/kafkaconn/kafkaconn.log
+553 KAFKASTRM-LL: /home/tigergraph/tigergraph/log/kafkastrm-ll/KAFKASTRM-LL_1.out
+554 KAFKASTRM-LL: /home/tigergraph/tigergraph/log/kafkastrm-ll/kafkastrm-ll.log
+555 NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/NGINX#1.out
+556 NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/error.log
+557 NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/nginx.access.log
+558 NGINX  : /home/tigergraph/tigergraph/log/nginx/logs/nginx.error.log
+559 RESTPP : /home/tigergraph/tigergraph/log/restpp/RESTPP#1.out
+560 RESTPP : /home/tigergraph/tigergraph/log/restpp/log.INFO
+561 TS3    : /home/tigergraph/tigergraph/log/ts3/TS3_1.log
+562 TS3    : /home/tigergraph/tigergraph/log/ts3/TS3_1.out
+563 TS3SERV: /home/tigergraph/tigergraph/log/ts3serv/TS3SERV#1.out
+564 ZK     : /home/tigergraph/tigergraph/log/zk/ZK#1.out
+565 ZK     : /home/tigergraph/tigergraph/log/zk/zookeeper.log
+566 ----
+567 
+568 === gadmin reset
+569 
+570 [source,text]
+571 ----
+572 $ gadmin reset -h
+573 
+574 Reset the whole init or given service with its data
+575 
+576 Usage:
+577   gadmin reset [service name...] [flags]
+578 
+579 Description:
+580   Service name should be a valid TigerGraph service name, for example, GSE, RESTPP
+581   or GPE.
+582 
+583 Flags:
+584   -y, --confirm   confirm to reset service
+585   -h, --help      help for reset
+586 
+587 Global Flags:
+588       --debug   enable debug log output to stdout
+589 ----
+590 
+591 === gadmin restart
+592 
+593 The `gadmin restart` command is used to restart one, many, or all TigerGraph services. You will need to confirm the restarting of services by either entering y (yes) or n (no). To bypass this prompt, you can use the -y flag to force confirmation.
+594 
+595 [source,text]
+596 ----
+597 $ gadmin restart -h
+598 
+599 Restart services by service id
+600 
+601 Usage:
+602   gadmin restart [serviceID...] [flags]
+603 
+604 Description:
+605   ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
+606   replica field empty(e.g. GSE_1) to either refer to all replicas of given
+607   partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
+608 
+609 Flags:
+610   -y, --confirm   confirm to restart service
+611   -h, --help      help for restart
+612       --no-dep    restart service without dependency
+613 
+614 Global Flags:
+615       --debug   enable debug log output to stdout
+616 ----
+617 
+618 [source,text]
+619 ----
+620 $ gadmin restart all -y
+621 [   Info] Stopping ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 IFM GUI
+622 [   Info] Stopping CTRL
+623 [   Info] Stopping EXE
+624 [   Info] Starting EXE
+625 [   Info] Starting CTRL
+626 [   Info] Starting ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 IFM GUI
+627 ----
+628 
+629 === gadmin start
+630 
+631 The `gadmin start` command can be used to start one, many, or all services.
+632 
+633 [source,text]
+634 ----
+635 $ gadmin start -h
+636 
+637 Start services by service id
+638 
+639 Usage:
+640   gadmin start [serviceID...] [flags]
+641 
+642 Description:
+643   ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
+644   replica field empty(e.g. GSE_1) to either refer to all replicas of given
+645   partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
+646   If no serviceID is specified, it only starts services excluding the
+647   infrastructure. Use 'gadmin start all' to start all services.
+648 
+649 Flags:
+650       --dry-run              dry run and output command to start the service
+651   -h, --help                 help for start
+652       --no-dep               start service without dependency
+653       --with-config string   start with given config file and dump it to each node (only for executor)
+654       --ignore-error         starting services with ignore-error will start all possible services, and ensure that the platform can still start and run normally when some services or some nodes are down
+655 
+656 Global Flags:
+657       --debug   enable debug log output to stdout
+658 ----
+659 
+660 [source,text]
+661 ----
+662 $ gadmin start all
+663 [   Info] Starting EXE
+664 [   Info] Starting CTRL
+665 [   Info] Starting ZK ETCD DICT KAFKA ADMIN GSE NGINX GPE RESTPP KAFKASTRM-LL KAFKACONN TS3SERV GSQL TS3 IFM GUI
+666 ----
+667 
+668 === gadmin status
+669 
+670 Check the status of TigerGraph component servers:
+671 
+672 [source,text]
+673 ----
+674 $ gadmin status -h
+675 
+676 Show current status of service
+677 
+678 Usage:
+679   gadmin status [serviceID...] [flags]
+680 
+681 Description:
+682   ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
+683   replica field empty(e.g. GSE_1) to either refer to all replicas of given
+684   partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
+685   If no serviceID is specified, it will show all service status
+686 
+687 Flags:
+688   -h, --help      help for status
+689   -v, --verbose   report service status in detail
+690 
+691 Global Flags:
+692       --debug   enable debug log output to stdout
+693 ----
+694 
+695 Use *`gadmin status`* to report whether each of the main component servers is running (up) or stopped (off).  The example below shows the normal status when the graph store is empty and a graph schema has not been defined:
+696 
+697 [source,text]
+698 ----
+699 $ gadmin status
+700 
+701 +--------------------+-------------------------+-------------------------+
+702 |    Service Name    |     Service Status      |      Process State      |
+703 +--------------------+-------------------------+-------------------------+
+704 |       ADMIN        |         Online          |         Running         |
+705 |        CTRL        |         Online          |         Running         |
+706 |        DICT        |         Online          |         Running         |
+707 |        ETCD        |         Online          |         Running         |
+708 |        GPE         |         Online          |         Running         |
+709 |        GSE         |         Online          |         Running         |
+710 |        GSQL        |         Online          |         Running         |
+711 |        GUI         |         Online          |         Running         |
+712 |        IFM         |         Online          |         Running         |
+713 |       KAFKA        |         Online          |         Running         |
+714 |     KAFKACONN      |         Online          |         Running         |
+715 |    KAFKASTRM-LL    |         Online          |         Running         |
+716 |       NGINX        |         Online          |         Running         |
+717 |       RESTPP       |         Online          |         Running         |
+718 |        TS3         |         Online          |         Running         |
+719 |      TS3SERV       |         Online          |         Running         |
+720 |         ZK         |         Online          |         Running         |
+721 +--------------------+-------------------------+-------------------------+
+722 ----
+723 
+724 You  can also check the status of each instance using the verbose flag : `gadmin status -v`  or `gadmin status --verbose`. This will show each machine's status. See example below
+725 
+726 [source,text]
+727 ----
+728 $ gadmin status -v GPE
+729 
+730 +--------------------+-------------------------+-------------------------+
+731 |    Service Name    |     Service Status      |      Process State      |
+732 +--------------------+-------------------------+-------------------------+
+733 |      GPE_1#1       |         Warmup          |         Running         |
+734 |      GPE_1#2       |         Warmup          |         Running         |
+735 +--------------------+-------------------------+-------------------------+
+736 ----
+737 
+738 Here are the most common service and process status states you might see from running the `gadmin status` command :
+739 
+740 ==== Service Status Definitions
+741 
+742 * *Online* - The service is online and ready.
+743 * *Warmup* - The service is processing the graph information and will be online soon.
+744 * *Stopping* - The service has received a stop command and will be down soon.
+745 * *Offline* - The service is not available.
+746 * *Down* - The service has been stopped or crashed.
+747 * *StatusUnknown* - The valid status of the service is not tracked.
+748 
+749 ==== Process State Status Definitions
+750 
+751 * *Init* - Process is initializing and will be in the running state soon.
+752 * *Running* - The process is running and available.
+753 * *Zombie* - There is a leftover process from a previous instance.
+754 * *Stopped* - The process has been stopped or crashed.
+755 * *StatusUnknown* - The valid status of the process is not tracked.
+756 
+757 === gadmin stop
+758 
+759 The gadmin stop command can be used to stop one, many, or all TigerGraph services. You will need to confirm the restarting of services by either entering y (yes) or n (no). To bypass this prompt, you can use the -y flag to force confirmation.
+760 
+761 [source,text]
+762 ----
+763 $ gadmin stop -h
+764 
+765 Stop services by service id
+766 
+767 Usage:
+768   gadmin stop [serviceID...] [flags]
+769 
+770 Description:
+771   ServiceID should be [serviceName][_partition][#replica], e.g., GSE_1#3. Leave
+772   replica field empty(e.g. GSE_1) to either refer to all replicas of given
+773   partition, or if the service has no replicas(e.g. EXE_1). Same for parititons.
+774   If no serviceID is specified, it only stops services excluding the
+775   infrastructure. Use 'gadmin stop all' to stop all services.
+776 
+777 Flags:
+778   -y, --confirm   confirm to stop service
+779   -h, --help      help for stop
+780   --ignore-error  stopping services with ignore-error will stop all possible services, and ensure that the platform can still stop and run normally when some services or some nodes are down
+781 
+782 Global Flags:
+783       --debug   enable debug log output to stdout
+784 ----
+785 
+786 [source,text]
+787 ----
+788 $ gadmin stop gsql
+789 [   Note] Stop the service(s)? (y/N)y
+790 [   Info] Stopping GSQL
+791 ----
+792 
+793 === gadmin version
+794 
+795 [source,text]
+796 ----
+797 $ gadmin version -h
+798 
+799 Show the version information
+800 
+801 Usage:
+802   gadmin version [flags]
+803 
+804 Description:
+805   Show version information of all TigerGraph components, including repo name,
+806   version, git commit number, git commit datetime.
+807 
+808 Flags:
+809   -h, --help   help for version
+810 
+811 Global Flags:
+812       --debug   enable debug log output to stdout
+813 ----
+814 
+815 == More examples
+816 
+817 === *Configuring memory use thresholds*
+818 
+819 TigerGraph offers two levels of memory thresholds using the following configuration settings:
+820 
+821 *SysAlertFreePct* and *SysMinFreePct*
+822 
+823 *SysAlertFreePct* setting indicates that the memory usage has crossed a threshold where the system will start throttling Queries to allow long-running queries to finish and release the memory.
+824 
+825 *SysMinFreePct* setting indicates that the memory usage has crossed a critical threshold and the Queries will start aborting automatically to prevent GPE crash and system stability.
+826 
+827 By default, SysMinFreePct is set at 10%, at which point Queries will be aborted.​
+828 
+829 [source,text]
+830 ----
+831 $ gadmin config entry GPE.BasicConfig.Env
+832 
+833 GPE.BasicConfig.Env [ LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH; ]: The runtime environment variables, separated by ';'
+834 ✔ New: LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH;
+835 
+836 Add this line to the existing config :
+837 SysMinFreePct=20;SysAlertFreePct=70;
+838 
+839 Your config line should now look like this :
+840 
+841 GPE.BasicConfig.Env [ LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH; ]: The runtime environment variables, separated by ';'
+842 ✔ New: LD_PRELOAD=$LD_PRELOAD; LD_LIBRARY_PATH=$LD_LIBRARY_PATH;SysMinFreePct=20;SysAlertFreePct=30;
+843 
+844 $ gadmin restart gpe -y
+845 ----
+846 
+847 *Example:*
+848 
+849 *SysAlertFreePct=30* means when the system memory consumption is over *70%* of the memory, the system will enter an alert state, and Graph updates will start to slow down.
+850 
+851 *SysMinFreePct=20* means 20% of the memory is required to be free. When memory consumption enters a critical state *(over 80% memory consumption)* queries will be aborted. automatically.
+852 
+853 === *Configuring Nginx configuration template​*
+854 
+855 Follow the steps documented in https://tigergraph.freshdesk.com/support/solutions/articles/5000867964-change-default-value-for-fastcgi-read-timeout-nginx-configuration-[this support article] to update the Nginx configurations of your TigerGraph instance.
